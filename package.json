@@ -1,0 +1,25 @@
+{
+  "name": "koli-parts",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Koli Parts — AI-driven auto parts marketplace for Bulgaria (B2B wholesale from Germany)",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "lint": "turbo run lint",
+    "type-check": "turbo run type-check",
+    "db:migrate": "psql $DATABASE_URL -f db/migrations/001_initial_schema.sql",
+    "clean": "turbo run clean"
+  },
+  "devDependencies": {
+    "turbo": "^2.5.0"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "packageManager": "npm@10.8.0"
+}

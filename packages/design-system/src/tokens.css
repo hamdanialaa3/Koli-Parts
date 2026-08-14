@@ -1,0 +1,81 @@
+/* Koli One semantic theme subset for Koli Parts.
+   Source: hamdanialaa3/koli-one theme-vars.css (audited 2026-08-15).
+   Do not introduce page-specific brand colors outside semantic tokens. */
+
+:root {
+  --koli-font-body: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --koli-font-heading: 'Exo 2', 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+
+  --koli-radius-sm: 6px;
+  --koli-radius-md: 10px;
+  --koli-radius-lg: 16px;
+  --koli-radius-full: 9999px;
+
+  --koli-motion-fast: 120ms;
+  --koli-motion-normal: 200ms;
+  --koli-motion-slow: 320ms;
+
+  --koli-space-xxs: 4px;
+  --koli-space-xs: 8px;
+  --koli-space-sm: 12px;
+  --koli-space-md: 16px;
+  --koli-space-lg: 20px;
+  --koli-space-xl: 24px;
+  --koli-space-2xl: 32px;
+  --koli-space-3xl: 40px;
+  --koli-touch-min: 44px;
+
+  --koli-bg: #F7FBFA;
+  --koli-surface: #FFFFFF;
+  --koli-surface-low: #EFF7F5;
+  --koli-surface-container: #E7F3F0;
+  --koli-surface-high: #D9ECE8;
+  --koli-primary: #0F766E;
+  --koli-on-primary: #FFFFFF;
+  --koli-primary-container: #B8F0E6;
+  --koli-secondary: #0E5E55;
+  --koli-secondary-container: #C6E9EC;
+  --koli-tertiary: #1A237E;
+  --koli-text: #0F1720;
+  --koli-text-secondary: #334155;
+  --koli-text-muted: #64748B;
+  --koli-border: #64748B;
+  --koli-divider: #D6E5E1;
+  --koli-success: #006C4A;
+  --koli-warning: #9B4500;
+  --koli-error: #BA1A1A;
+  --koli-info: #0053DB;
+  --koli-led: #1DE6CB;
+  --koli-led-soft: #CCF8F0;
+  --koli-glow: #2BD9C2;
+  --koli-edge: #0AA89A;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --koli-bg: #0B0F12;
+    --koli-surface: #0F1720;
+    --koli-surface-low: #0F1720;
+    --koli-surface-container: #111C27;
+    --koli-surface-high: #172231;
+    --koli-primary: #1DE6CB;
+    --koli-on-primary: #00201B;
+    --koli-primary-container: #005047;
+    --koli-secondary: #7CF0E0;
+    --koli-secondary-container: #334B4D;
+    --koli-tertiary: #A5B4FC;
+    --koli-text: #E6EEF8;
+    --koli-text-secondary: #CBD5E1;
+    --koli-text-muted: #94A3B8;
+    --koli-border: #718096;
+    --koli-divider: #1F2937;
+    --koli-success: #85D7AF;
+    --koli-warning: #FFB68E;
+    --koli-error: #FFB4AB;
+    --koli-info: #B4C5FF;
+    --koli-led: #1DE6CB;
+    --koli-led-soft: #00423A;
+    --koli-glow: #2BD9C2;
+    --koli-edge: #6FF0DF;
+  }
+}

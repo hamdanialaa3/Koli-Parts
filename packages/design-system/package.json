@@ -1,0 +1,11 @@
+{
+  "name": "@koli-parts/design-system",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./tokens.css": "./src/tokens.css",
+    "./tokens": "./src/tokens.ts",
+    "./typography": "./src/typography.ts"
+  }
+}

@@ -1,0 +1,43 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: koliparts
+      POSTGRES_PASSWORD: change_me_local
+      POSTGRES_DB: koliparts_db
+    ports: ['5432:5432']
+    volumes: [koliparts_pg:/var/lib/postgresql/data]
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U koliparts -d koliparts_db']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    command: ['redis-server', '--appendonly', 'yes']
+    ports: ['6379:6379']
+    volumes: [koliparts_redis:/data]
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  meilisearch:
+    image: getmeili/meilisearch:v1.15
+    environment:
+      MEILI_ENV: development
+      MEILI_MASTER_KEY: change_me_local_search
+    ports: ['7700:7700']
+    volumes: [koliparts_meili:/meili_data]
+    healthcheck:
+      test: ['CMD', 'wget', '--spider', '-q', 'http://localhost:7700/health']
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  koliparts_pg:
+  koliparts_redis:
+  koliparts_meili:

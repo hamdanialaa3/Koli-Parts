@@ -42,3 +42,7 @@ coverage/
 
 # Misc
 *.tsbuildinfo
+.starter-backup/
+Koli_Parts_Root_Starter_Pack/
+Koli_Parts_Root_Starter_Pack.zip
+CHECKSUMS.md

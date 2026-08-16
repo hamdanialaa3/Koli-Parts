@@ -1,5 +1,7 @@
 import {
   BadRequestException,
+  ConflictException,
+  NotFoundException,
   ServiceUnavailableException,
   UnauthorizedException,
 } from '@nestjs/common';
@@ -140,6 +142,43 @@ describe('VehiclesController', () => {
       ),
     ).rejects.toThrow(BadRequestException);
     expect(updateVehicle).not.toHaveBeenCalled();
+  });
+
+  it('deletes an authenticated user vehicle', async () => {
+    const deleteVehicle = jest
+      .fn()
+      .mockResolvedValue({ status: 'deleted', vehicle: { id: vehicleId } });
+    const controller = makeController({ deleteVehicle });
+
+    await expect(
+      controller.deleteVehicle({ vehicleId }, request as never),
+    ).resolves.toEqual({ id: vehicleId });
+    expect(deleteVehicle).toHaveBeenCalledWith({ userId, vehicleId });
+  });
+
+  it('rejects invalid delete vehicle ids', async () => {
+    const deleteVehicle = jest.fn();
+    const controller = makeController({ deleteVehicle });
+
+    await expect(
+      controller.deleteVehicle({ vehicleId: 'not-a-uuid' }, request as never),
+    ).rejects.toThrow(BadRequestException);
+    expect(deleteVehicle).not.toHaveBeenCalled();
+  });
+
+  it('maps delete misses and referenced vehicles to safe errors', async () => {
+    const deleteVehicle = jest
+      .fn()
+      .mockResolvedValueOnce({ status: 'not_found' })
+      .mockResolvedValueOnce({ status: 'referenced' });
+    const controller = makeController({ deleteVehicle });
+
+    await expect(
+      controller.deleteVehicle({ vehicleId }, request as never),
+    ).rejects.toThrow(NotFoundException);
+    await expect(
+      controller.deleteVehicle({ vehicleId }, request as never),
+    ).rejects.toThrow(ConflictException);
   });
 
   it('normalizes VIN parse requests without fabricating candidates', () => {

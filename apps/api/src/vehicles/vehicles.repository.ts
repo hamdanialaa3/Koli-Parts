@@ -4,6 +4,8 @@ import { Pool } from 'pg';
 import type { Config } from '../config.schema';
 import type {
   CreateVehicleInput,
+  DeleteVehicleInput,
+  DeleteVehicleResult,
   GetVehicleInput,
   ListVehiclesInput,
   SetDefaultVehicleInput,
@@ -19,6 +21,7 @@ export interface VehiclesRepository {
   create(input: CreateVehicleInput): Promise<Vehicle>;
   setDefault(input: SetDefaultVehicleInput): Promise<Vehicle | null>;
   update(input: UpdateVehicleInput): Promise<Vehicle | null>;
+  delete(input: DeleteVehicleInput): Promise<DeleteVehicleResult>;
 }
 
 type VehicleRow = {
@@ -153,6 +156,55 @@ export class PostgresVehiclesRepository
     );
 
     return result.rows[0] ? this.toVehicle(result.rows[0]) : null;
+  }
+
+  async delete(input: DeleteVehicleInput): Promise<DeleteVehicleResult> {
+    const client = await this.pool.connect();
+    try {
+      await client.query('BEGIN');
+      const existing = await client.query<VehicleRow>(
+        `SELECT id, vin, make, model, production_year, engine_code,
+                is_default, created_at, updated_at
+           FROM vehicles
+          WHERE user_id = $1 AND id = $2
+          FOR UPDATE`,
+        [input.userId, input.vehicleId],
+      );
+
+      if (!existing.rows[0]) {
+        await client.query('ROLLBACK');
+        return { status: 'not_found' };
+      }
+
+      const references = await client.query<{ is_referenced: boolean }>(
+        `SELECT EXISTS (
+           SELECT 1 FROM cart_items WHERE vehicle_id = $1
+         ) OR EXISTS (
+           SELECT 1 FROM order_items WHERE vehicle_id = $1
+         ) AS is_referenced`,
+        [input.vehicleId],
+      );
+      if (references.rows[0]?.is_referenced) {
+        await client.query('ROLLBACK');
+        return { status: 'referenced' };
+      }
+
+      const result = await client.query<VehicleRow>(
+        `DELETE FROM vehicles
+          WHERE user_id = $1 AND id = $2
+          RETURNING id, vin, make, model, production_year, engine_code,
+                    is_default, created_at, updated_at`,
+        [input.userId, input.vehicleId],
+      );
+
+      await client.query('COMMIT');
+      return { status: 'deleted', vehicle: this.toVehicle(result.rows[0]) };
+    } catch (error) {
+      await client.query('ROLLBACK');
+      throw error;
+    } finally {
+      client.release();
+    }
   }
 
   private toVehicle(row: VehicleRow): Vehicle {

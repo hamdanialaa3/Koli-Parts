@@ -137,6 +137,61 @@ describe('PostgresVehiclesRepository', () => {
       makeRepository().update({ userId, vehicleId: row.id, make: 'VW' }),
     ).resolves.toBeNull();
   });
+
+  it('deletes only vehicles owned by the authenticated user', async () => {
+    mockClient.query
+      .mockResolvedValueOnce({})
+      .mockResolvedValueOnce({ rows: [row] })
+      .mockResolvedValueOnce({ rows: [{ is_referenced: false }] })
+      .mockResolvedValueOnce({ rows: [row] })
+      .mockResolvedValueOnce({});
+
+    const result = await makeRepository().delete({
+      userId,
+      vehicleId: row.id,
+    });
+
+    expect(result.status).toBe('deleted');
+    expect(result.status === 'deleted' ? result.vehicle.id : undefined).toBe(
+      row.id,
+    );
+    expect(mockClient.query).toHaveBeenNthCalledWith(
+      2,
+      expect.stringContaining('WHERE user_id = $1 AND id = $2'),
+      [userId, row.id],
+    );
+    expect(mockClient.query).toHaveBeenNthCalledWith(
+      4,
+      expect.stringContaining('DELETE FROM vehicles'),
+      [userId, row.id],
+    );
+    expect(mockClient.query).toHaveBeenLastCalledWith('COMMIT');
+  });
+
+  it('does not delete a vehicle outside the authenticated user scope', async () => {
+    mockClient.query
+      .mockResolvedValueOnce({})
+      .mockResolvedValueOnce({ rows: [] })
+      .mockResolvedValueOnce({});
+
+    await expect(
+      makeRepository().delete({ userId, vehicleId: row.id }),
+    ).resolves.toEqual({ status: 'not_found' });
+    expect(mockClient.query).toHaveBeenLastCalledWith('ROLLBACK');
+  });
+
+  it('blocks deleting a vehicle referenced by carts or orders', async () => {
+    mockClient.query
+      .mockResolvedValueOnce({})
+      .mockResolvedValueOnce({ rows: [row] })
+      .mockResolvedValueOnce({ rows: [{ is_referenced: true }] })
+      .mockResolvedValueOnce({});
+
+    await expect(
+      makeRepository().delete({ userId, vehicleId: row.id }),
+    ).resolves.toEqual({ status: 'referenced' });
+    expect(mockClient.query).toHaveBeenLastCalledWith('ROLLBACK');
+  });
 });
 
 function makeRepository(): PostgresVehiclesRepository {

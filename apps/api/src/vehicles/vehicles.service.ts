@@ -7,6 +7,7 @@ import {
 } from './vehicles.repository';
 import type {
   CreateVehicleInput,
+  DeleteVehicleInput,
   GetVehicleInput,
   ListVehiclesInput,
   SetDefaultVehicleInput,
@@ -40,6 +41,10 @@ export class VehiclesService {
 
   updateVehicle(input: UpdateVehicleInput) {
     return this.repository.update(input);
+  }
+
+  deleteVehicle(input: DeleteVehicleInput) {
+    return this.repository.delete(input);
   }
 
   parseVin(vin: string): VehicleCandidate | null {

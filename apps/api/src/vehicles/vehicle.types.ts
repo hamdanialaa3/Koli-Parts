@@ -12,6 +12,13 @@ export type GetVehicleInput = OwnerInput & {
 
 export type SetDefaultVehicleInput = GetVehicleInput;
 
+export type DeleteVehicleInput = GetVehicleInput;
+
+export type DeleteVehicleResult =
+  | { status: 'deleted'; vehicle: Vehicle }
+  | { status: 'not_found' }
+  | { status: 'referenced' };
+
 export type UpdateVehicleInput = OwnerInput &
   Partial<VehiclePayload> & {
     vehicleId: string;

@@ -82,6 +82,24 @@ export class VehiclesController {
     });
   }
 
+  @Get(':vehicleId')
+  async getVehicle(@Param() params: unknown, @Req() request: Request) {
+    const authUser = this.getAuthUser(request);
+    const parsedParams = vehicleIdParamSchema.safeParse(params);
+    if (!parsedParams.success) {
+      throw new BadRequestException('Invalid vehicle id');
+    }
+
+    const vehicle = await this.vehiclesService.getVehicle({
+      userId: authUser.userId,
+      vehicleId: parsedParams.data.vehicleId,
+    });
+    if (!vehicle) {
+      throw new NotFoundException('Vehicle not found');
+    }
+    return vehicle;
+  }
+
   @Post()
   @UseGuards(CsrfGuard)
   createVehicle(@Body() body: unknown, @Req() request: Request) {

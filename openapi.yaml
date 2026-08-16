@@ -122,6 +122,23 @@ paths:
         '400': { description: Invalid vehicle payload }
         '401': { $ref: '#/components/responses/Unauthorized' }
   /vehicles/{vehicleId}:
+    get:
+      tags: [Vehicles]
+      operationId: getVehicle
+      parameters:
+        - in: path
+          name: vehicleId
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: User vehicle
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Vehicle' }
+        '400': { description: Invalid vehicle id }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { description: Vehicle not found }
     patch:
       tags: [Vehicles]
       operationId: updateVehicle

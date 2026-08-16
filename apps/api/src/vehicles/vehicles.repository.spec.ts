@@ -43,6 +43,18 @@ describe('PostgresVehiclesRepository', () => {
     );
   });
 
+  it('finds one vehicle only within the authenticated user scope', async () => {
+    mockPool.query.mockResolvedValueOnce({ rows: [row] });
+
+    const result = await makeRepository().find({ userId, vehicleId: row.id });
+
+    expect(result?.id).toBe(row.id);
+    expect(mockPool.query).toHaveBeenCalledWith(
+      expect.stringContaining('WHERE user_id = $1 AND id = $2'),
+      [userId, row.id],
+    );
+  });
+
   it('creates a vehicle owned by the authenticated user', async () => {
     mockPool.query.mockResolvedValueOnce({
       rows: [{ ...row, vin: null, production_year: null, engine_code: null }],

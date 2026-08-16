@@ -6,9 +6,11 @@ export type ListVehiclesInput = OwnerInput & {
   limit: number;
 };
 
-export type SetDefaultVehicleInput = OwnerInput & {
+export type GetVehicleInput = OwnerInput & {
   vehicleId: string;
 };
+
+export type SetDefaultVehicleInput = GetVehicleInput;
 
 export type UpdateVehicleInput = OwnerInput &
   Partial<VehiclePayload> & {

@@ -1,4 +1,6 @@
-import { Inject } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import type { Config } from '../config.schema';
 import {
   VEHICLES_REPOSITORY,
   type VehiclesRepository,
@@ -8,12 +10,15 @@ import type {
   ListVehiclesInput,
   SetDefaultVehicleInput,
   UpdateVehicleInput,
+  VehicleCandidate,
 } from './vehicle.types';
 
+@Injectable()
 export class VehiclesService {
   constructor(
     @Inject(VEHICLES_REPOSITORY)
     private readonly repository: VehiclesRepository,
+    private readonly configService: ConfigService<Config, true>,
   ) {}
 
   listVehicles(input: ListVehiclesInput) {
@@ -30,5 +35,12 @@ export class VehiclesService {
 
   updateVehicle(input: UpdateVehicleInput) {
     return this.repository.update(input);
+  }
+
+  parseVin(vin: string): VehicleCandidate | null {
+    if (vin.length !== 17) return null;
+    const provider = this.configService.get('VIN_PROVIDER', { infer: true });
+    if (provider === 'unconfigured') return null;
+    return null;
   }
 }

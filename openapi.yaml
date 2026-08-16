@@ -168,6 +168,8 @@ paths:
     post:
       tags: [Vehicles]
       operationId: parseVin
+      parameters:
+        - $ref: '#/components/parameters/CsrfToken'
       requestBody:
         required: true
         content:
@@ -183,6 +185,9 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/VehicleCandidate' }
+        '400': { description: Invalid VIN payload }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '503': { description: VIN provider unavailable }
   /search:
     get:
       tags: [Search]

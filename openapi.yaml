@@ -162,6 +162,25 @@ paths:
         '400': { description: Invalid vehicle update }
         '401': { $ref: '#/components/responses/Unauthorized' }
         '404': { description: Vehicle not found }
+    delete:
+      tags: [Vehicles]
+      operationId: deleteVehicle
+      parameters:
+        - in: path
+          name: vehicleId
+          required: true
+          schema: { type: string, format: uuid }
+        - $ref: '#/components/parameters/CsrfToken'
+      responses:
+        '200':
+          description: Deleted vehicle
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Vehicle' }
+        '400': { description: Invalid vehicle id }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { description: Vehicle not found }
+        '409': { description: Vehicle is in use by cart or order records }
   /vehicles/{vehicleId}/default:
     post:
       tags: [Vehicles]

@@ -1,7 +1,9 @@
 import {
   BadRequestException,
   Body,
+  ConflictException,
   Controller,
+  Delete,
   Get,
   NotFoundException,
   Param,
@@ -177,6 +179,28 @@ export class VehiclesController {
       throw new NotFoundException('Vehicle not found');
     }
     return vehicle;
+  }
+
+  @Delete(':vehicleId')
+  @UseGuards(CsrfGuard)
+  async deleteVehicle(@Param() params: unknown, @Req() request: Request) {
+    const authUser = this.getAuthUser(request);
+    const parsedParams = vehicleIdParamSchema.safeParse(params);
+    if (!parsedParams.success) {
+      throw new BadRequestException('Invalid vehicle id');
+    }
+
+    const result = await this.vehiclesService.deleteVehicle({
+      userId: authUser.userId,
+      vehicleId: parsedParams.data.vehicleId,
+    });
+    if (result.status === 'not_found') {
+      throw new NotFoundException('Vehicle not found');
+    }
+    if (result.status === 'referenced') {
+      throw new ConflictException('Vehicle is in use');
+    }
+    return result.vehicle;
   }
 
   private getAuthUser(request: Request) {

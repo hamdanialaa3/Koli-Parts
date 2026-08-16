@@ -5,6 +5,7 @@ import { AppService } from './app.service';
 import { AdminModule } from './admin/admin.module';
 import { AuthModule } from './auth/auth.module';
 import { configValidationSchema } from './config.schema';
+import { VehiclesModule } from './vehicles/vehicles.module';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { configValidationSchema } from './config.schema';
     }),
     AdminModule,
     AuthModule,
+    VehiclesModule,
   ],
   controllers: [AppController],
   providers: [AppService],

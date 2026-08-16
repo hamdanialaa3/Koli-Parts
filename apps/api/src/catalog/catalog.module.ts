@@ -1,6 +1,10 @@
 import { Module } from '@nestjs/common';
 import { CatalogController } from './catalog.controller';
 import {
+  CATALOG_SEARCH_PROVIDER,
+  PostgresCatalogSearchProvider,
+} from './catalog-search.provider';
+import {
   CATALOG_REPOSITORY,
   PostgresCatalogRepository,
 } from './catalog.repository';
@@ -14,6 +18,10 @@ import { SearchController } from './search.controller';
     {
       provide: CATALOG_REPOSITORY,
       useClass: PostgresCatalogRepository,
+    },
+    {
+      provide: CATALOG_SEARCH_PROVIDER,
+      useClass: PostgresCatalogSearchProvider,
     },
   ],
 })

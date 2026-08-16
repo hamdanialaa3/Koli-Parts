@@ -23,6 +23,8 @@ state after the first hardening slice.
 - Added `.dockerignore` and copied workspace package manifests into API/Web
   Docker dependency stages so local `node_modules`, `.next`, `dist`, `.turbo`,
   and local env files are excluded from image build context.
+- Fixed the Meilisearch healthcheck to use `127.0.0.1`; the image-local
+  `wget http://localhost:7700/health` failed while the service was available.
 - Added a GitHub Actions migration gate backed by a PostgreSQL service
   container and `npm run db:migrate`.
 
@@ -41,23 +43,24 @@ All commands were run on Windows PowerShell with
 | `npm audit --audit-level=high` | PASS — 0 vulnerabilities |
 | `npm run verify:config` | PASS |
 | `git diff --check` | PASS |
+| `docker compose config` | PASS |
+| `docker compose up -d postgres redis meilisearch` | PASS |
+| Docker Compose health checks | PASS — Postgres, Redis, and Meilisearch healthy |
+| Disposable PostgreSQL migration via container `psql` | PASS |
+| `docker build -f docker/api.Dockerfile -t koli-parts-api:test .` | PASS |
+| `docker build -f docker/web.Dockerfile -t koli-parts-web:test .` | PASS |
 
-## Blocked Local Checks
+## Environment Notes
 
 | Check | Status | Reason |
 |---|---|---|
-| Docker Compose service health | BLOCKED | Docker CLI is not available in the local shell |
-| API Docker build | BLOCKED | Docker CLI is not available in the local shell |
-| Web Docker build | BLOCKED | Docker CLI is not available in the local shell |
-| Disposable DB migration execution | BLOCKED | `psql` and Docker/Postgres are not available locally |
+| Host `npm ci` | PASS with `C:\Program Files\nodejs` temporarily prepended to `PATH`; package postinstall scripts require `node` on PATH |
+| Docker CLI | PASS with `C:\Program Files\Docker\Docker\resources\bin` temporarily prepended to `PATH` |
+| Host `npm run db:migrate` | BLOCKED locally because host `psql` is not installed; CI installs `postgresql-client`, and the migration was validated against the Compose Postgres container |
 
 The migration runner failure mode was verified without `DATABASE_URL` and exits
 with `DATABASE_URL is required to run migrations.`
 
 ## Remaining Sprint 1 Work
 
-- Run Docker Compose health checks for Postgres, Redis, and Meilisearch in an
-  environment with Docker available.
-- Run `npm run db:migrate` against a disposable PostgreSQL database.
-- Build both Dockerfiles with Docker available.
 - Confirm the new CI migration gate passes on GitHub Actions.

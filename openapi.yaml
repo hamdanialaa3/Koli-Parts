@@ -11,7 +11,7 @@ servers:
   - url: https://api.koli-one.com
     description: production-proposed
 security:
-  - bearerAuth: []
+  - cookieAuth: []
 tags:
   - name: Auth
   - name: Vehicles
@@ -54,11 +54,35 @@ paths:
       responses:
         '200':
           description: Session established
+          headers:
+            Set-Cookie:
+              description: Secure HttpOnly Koli Parts session cookie
+              schema: { type: string }
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/AuthSession'
         '401': { $ref: '#/components/responses/Unauthorized' }
+  /auth/me:
+    get:
+      tags: [Auth]
+      summary: Return the current Koli Parts session user
+      operationId: getCurrentUser
+      responses:
+        '200':
+          description: Current session user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthSession'
+        '401': { $ref: '#/components/responses/Unauthorized' }
+  /auth/logout:
+    post:
+      tags: [Auth]
+      summary: Revoke the current Koli Parts session
+      operationId: logout
+      responses:
+        '204': { description: Session revoked }
   /vehicles:
     get:
       tags: [Vehicles]
@@ -230,6 +254,7 @@ paths:
       responses:
         '200':
           description: Approved; execution remains capability-gated
+        '403': { description: Requires procurement_operator, admin, or super_admin role }
   /webhooks/stripe:
     post:
       tags: [Webhooks]
@@ -252,6 +277,10 @@ components:
       type: http
       scheme: bearer
       bearerFormat: JWT
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: kp_session
   parameters:
     IdempotencyKey:
       in: header
@@ -274,10 +303,14 @@ components:
   schemas:
     AuthSession:
       type: object
-      required: [userId]
+      required: [userId, roles]
       properties:
         userId: { type: string, format: uuid }
         preferredLanguage: { type: string, enum: [bg, en] }
+        roles:
+          type: array
+          items: { type: string }
+        expiresAt: { type: string, format: date-time }
     CreateVehicle:
       type: object
       required: [make, model]

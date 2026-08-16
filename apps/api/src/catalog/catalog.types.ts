@@ -47,5 +47,6 @@ export type SearchResponse = {
 export type SearchPartsInput = {
   query: string;
   page: number;
+  identifierQuery?: string;
   vehicleId?: string;
 };

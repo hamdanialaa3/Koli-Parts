@@ -10,6 +10,7 @@ const mockClient = {
 
 const mockPool = {
   connect: jest.fn(),
+  query: jest.fn(),
   end: jest.fn(),
 };
 
@@ -30,6 +31,63 @@ describe('PostgresAdminProcurementRepository', () => {
     jest.clearAllMocks();
     mockPool.connect.mockResolvedValue(mockClient);
     mockClient.query.mockReset();
+    mockPool.query.mockReset();
+  });
+
+  it('lists pending and review procurements with a bounded query', async () => {
+    const createdAt = new Date('2026-08-16T20:00:00.000Z');
+    const updatedAt = new Date('2026-08-16T20:05:00.000Z');
+    mockPool.query.mockResolvedValueOnce({
+      rows: [
+        {
+          procurement_id: input.procurementId,
+          order_id: 'f6ee2a3e-8536-4b26-9f12-a1fdedfb9ba8',
+          procurement_status: 'REVIEW',
+          order_status: 'PROCUREMENT_REVIEW',
+          supplier: 'ebay',
+          total_minor: '11600',
+          currency: 'EUR',
+          created_at: createdAt,
+          updated_at: updatedAt,
+        },
+      ],
+    });
+
+    const repository = makeRepository();
+    const result = await repository.listQueue({ limit: 25 });
+
+    expect(result).toEqual({
+      items: [
+        {
+          procurementId: input.procurementId,
+          orderId: 'f6ee2a3e-8536-4b26-9f12-a1fdedfb9ba8',
+          procurementStatus: 'REVIEW',
+          orderStatus: 'PROCUREMENT_REVIEW',
+          supplier: 'ebay',
+          totalMinor: 11600,
+          currency: 'EUR',
+          createdAt: '2026-08-16T20:00:00.000Z',
+          updatedAt: '2026-08-16T20:05:00.000Z',
+        },
+      ],
+      limit: 25,
+    });
+    expect(mockPool.query).toHaveBeenCalledWith(
+      expect.stringContaining('LIMIT $2'),
+      [['PENDING', 'REVIEW'], 25],
+    );
+  });
+
+  it('filters the procurement queue by requested status', async () => {
+    mockPool.query.mockResolvedValueOnce({ rows: [] });
+
+    const repository = makeRepository();
+    await repository.listQueue({ status: 'PENDING', limit: 10 });
+
+    expect(mockPool.query).toHaveBeenCalledWith(expect.any(String), [
+      ['PENDING'],
+      10,
+    ]);
   });
 
   it('approves a pending procurement inside a transaction and records audit/idempotency', async () => {

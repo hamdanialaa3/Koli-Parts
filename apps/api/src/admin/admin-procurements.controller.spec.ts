@@ -3,6 +3,49 @@ import { AdminProcurementsController } from './admin-procurements.controller';
 import type { AdminProcurementService } from './admin-procurement.service';
 
 describe('AdminProcurementsController', () => {
+  it('lists the bounded procurement queue with optional status filtering', async () => {
+    const listProcurementQueue = jest.fn().mockResolvedValue({
+      items: [],
+      limit: 10,
+    });
+    const controller = new AdminProcurementsController({
+      listProcurementQueue,
+    } as unknown as AdminProcurementService);
+
+    await controller.listQueue({ status: 'REVIEW', limit: '10' });
+
+    expect(listProcurementQueue).toHaveBeenCalledWith({
+      status: 'REVIEW',
+      limit: 10,
+    });
+  });
+
+  it('defaults procurement queue limit to 25', async () => {
+    const listProcurementQueue = jest.fn().mockResolvedValue({
+      items: [],
+      limit: 25,
+    });
+    const controller = new AdminProcurementsController({
+      listProcurementQueue,
+    } as unknown as AdminProcurementService);
+
+    await controller.listQueue({});
+
+    expect(listProcurementQueue).toHaveBeenCalledWith({ limit: 25 });
+  });
+
+  it('rejects invalid procurement queue query input', () => {
+    const listProcurementQueue = jest.fn();
+    const controller = new AdminProcurementsController({
+      listProcurementQueue,
+    } as unknown as AdminProcurementService);
+
+    expect(() =>
+      controller.listQueue({ status: 'APPROVED', limit: '500' }),
+    ).toThrow(BadRequestException);
+    expect(listProcurementQueue).not.toHaveBeenCalled();
+  });
+
   it('submits a guarded procurement approval request to the service', async () => {
     const approveProcurement = jest.fn().mockResolvedValue({
       procurementId: '40b8bf5b-d6d3-465d-aec2-bc0f7f463d20',

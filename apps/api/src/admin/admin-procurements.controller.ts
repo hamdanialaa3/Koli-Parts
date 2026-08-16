@@ -2,9 +2,11 @@ import {
   BadRequestException,
   Body,
   Controller,
+  Get,
   Headers,
   Param,
   Post,
+  Query,
   Req,
   UnauthorizedException,
   UseGuards,
@@ -28,13 +30,29 @@ const bodySchema = z.object({
 
 const idempotencyKeySchema = z.string().min(16).max(200);
 
+const queueQuerySchema = z.object({
+  status: z.enum(['PENDING', 'REVIEW']).optional(),
+  limit: z.coerce.number().int().min(1).max(100).default(25),
+});
+
 @Controller('admin/procurements')
-@UseGuards(SessionAuthGuard, CsrfGuard, RolesGuard)
+@UseGuards(SessionAuthGuard, RolesGuard)
 @Roles(['procurement_operator', 'admin', 'super_admin'])
 export class AdminProcurementsController {
   constructor(private readonly service: AdminProcurementService) {}
 
+  @Get()
+  listQueue(@Query() query: unknown) {
+    const parsedQuery = queueQuerySchema.safeParse(query);
+    if (!parsedQuery.success) {
+      throw new BadRequestException('Invalid procurement queue query');
+    }
+
+    return this.service.listProcurementQueue(parsedQuery.data);
+  }
+
   @Post(':procurementId/approve')
+  @UseGuards(CsrfGuard)
   approve(
     @Param() params: unknown,
     @Body() body: unknown,

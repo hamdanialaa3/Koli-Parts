@@ -43,6 +43,8 @@ Show:
 
 The approval endpoint only moves an internal procurement from `PENDING` or `REVIEW` to `APPROVED`. It requires a valid Koli Parts session, CSRF token, `procurement_operator`/`admin`/`super_admin` role, and idempotency key. Approval records an audit log and does not start supplier ordering.
 
+The review queue endpoint returns only a bounded `PENDING`/`REVIEW` procurement list for the same admin roles. It is a read path and does not require CSRF.
+
 ## Automation eligibility
 
 Automation is allowed only when every configured condition passes, including provider permission, trusted seller, inventory/price revalidation, fitment threshold, margin floor, risk limit, shipping confirmation and kill-switch state.

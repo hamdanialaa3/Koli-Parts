@@ -17,10 +17,26 @@ describe('AdminProcurementService', () => {
     });
     const service = new AdminProcurementService({
       approve,
+      listQueue: jest.fn(),
     });
 
     await service.approveProcurement(input);
 
     expect(approve).toHaveBeenCalledWith(input);
+  });
+
+  it('delegates queue listing to the repository', async () => {
+    const listQueue = jest.fn().mockResolvedValue({
+      items: [],
+      limit: 25,
+    });
+    const service = new AdminProcurementService({
+      approve: jest.fn(),
+      listQueue,
+    });
+
+    await service.listProcurementQueue({ limit: 25 });
+
+    expect(listQueue).toHaveBeenCalledWith({ limit: 25 });
   });
 });

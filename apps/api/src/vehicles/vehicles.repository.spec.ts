@@ -98,6 +98,33 @@ describe('PostgresVehiclesRepository', () => {
 
     expect(mockClient.query).toHaveBeenLastCalledWith('ROLLBACK');
   });
+
+  it('updates only vehicles owned by the authenticated user', async () => {
+    mockPool.query.mockResolvedValueOnce({
+      rows: [{ ...row, make: 'VW', model: 'Golf' }],
+    });
+
+    const result = await makeRepository().update({
+      userId,
+      vehicleId: row.id,
+      make: 'VW',
+      model: 'Golf',
+    });
+
+    expect(result?.make).toBe('VW');
+    expect(mockPool.query).toHaveBeenCalledWith(
+      expect.stringContaining('WHERE user_id = $1 AND id = $2'),
+      [userId, row.id, null, 'VW', 'Golf', null, null],
+    );
+  });
+
+  it('returns null when updating a vehicle outside the user scope', async () => {
+    mockPool.query.mockResolvedValueOnce({ rows: [] });
+
+    await expect(
+      makeRepository().update({ userId, vehicleId: row.id, make: 'VW' }),
+    ).resolves.toBeNull();
+  });
 });
 
 function makeRepository(): PostgresVehiclesRepository {

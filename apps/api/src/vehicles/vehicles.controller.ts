@@ -5,6 +5,7 @@ import {
   Get,
   NotFoundException,
   Param,
+  Patch,
   Post,
   Query,
   Req,
@@ -47,6 +48,7 @@ const createVehicleSchema = z
   })
   .strict();
 
+const updateVehicleSchema = createVehicleSchema.partial();
 const listVehiclesQuerySchema = z.object({
   limit: z.coerce.number().int().min(1).max(100).default(50),
 });
@@ -98,6 +100,36 @@ export class VehiclesController {
     const vehicle = await this.vehiclesService.setDefaultVehicle({
       userId: authUser.userId,
       vehicleId: parsedParams.data.vehicleId,
+    });
+    if (!vehicle) {
+      throw new NotFoundException('Vehicle not found');
+    }
+    return vehicle;
+  }
+
+  @Patch(':vehicleId')
+  @UseGuards(CsrfGuard)
+  async updateVehicle(
+    @Param() params: unknown,
+    @Body() body: unknown,
+    @Req() request: Request,
+  ) {
+    const authUser = this.getAuthUser(request);
+    const parsedParams = vehicleIdParamSchema.safeParse(params);
+    const parsedBody = updateVehicleSchema.safeParse(body);
+    if (!parsedParams.success || !parsedBody.success) {
+      throw new BadRequestException('Invalid vehicle update');
+    }
+    if (!Object.values(parsedBody.data).some((value) => value !== undefined)) {
+      throw new BadRequestException(
+        'Vehicle update requires at least one field',
+      );
+    }
+
+    const vehicle = await this.vehiclesService.updateVehicle({
+      userId: authUser.userId,
+      vehicleId: parsedParams.data.vehicleId,
+      ...parsedBody.data,
     });
     if (!vehicle) {
       throw new NotFoundException('Vehicle not found');

@@ -85,4 +85,37 @@ describe('VehiclesController', () => {
     ).rejects.toThrow(BadRequestException);
     expect(setDefaultVehicle).not.toHaveBeenCalled();
   });
+
+  it('updates an authenticated user vehicle with normalized fields', async () => {
+    const updateVehicle = jest.fn().mockResolvedValue({ id: vehicleId });
+    const controller = makeController({ updateVehicle });
+
+    await controller.updateVehicle(
+      { vehicleId },
+      { vin: ' w0l0a7ec3f0000001 ', make: ' VW ', model: ' Golf ' },
+      request as never,
+    );
+
+    expect(updateVehicle).toHaveBeenCalledWith({
+      userId,
+      vehicleId,
+      vin: 'W0L0A7EC3F0000001',
+      make: 'VW',
+      model: 'Golf',
+    });
+  });
+
+  it('rejects injected update ownership or control fields', async () => {
+    const updateVehicle = jest.fn();
+    const controller = makeController({ updateVehicle });
+
+    await expect(
+      controller.updateVehicle(
+        { vehicleId },
+        { userId: 'attacker-user-id', isDefault: true, make: 'VW' },
+        request as never,
+      ),
+    ).rejects.toThrow(BadRequestException);
+    expect(updateVehicle).not.toHaveBeenCalled();
+  });
 });

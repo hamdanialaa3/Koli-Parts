@@ -6,6 +6,7 @@ import type {
   CreateVehicleInput,
   ListVehiclesInput,
   SetDefaultVehicleInput,
+  UpdateVehicleInput,
   Vehicle,
 } from './vehicle.types';
 
@@ -15,6 +16,7 @@ export interface VehiclesRepository {
   list(input: ListVehiclesInput): Promise<Vehicle[]>;
   create(input: CreateVehicleInput): Promise<Vehicle>;
   setDefault(input: SetDefaultVehicleInput): Promise<Vehicle | null>;
+  update(input: UpdateVehicleInput): Promise<Vehicle | null>;
 }
 
 type VehicleRow = {
@@ -111,6 +113,32 @@ export class PostgresVehiclesRepository
     } finally {
       client.release();
     }
+  }
+
+  async update(input: UpdateVehicleInput): Promise<Vehicle | null> {
+    const result = await this.pool.query<VehicleRow>(
+      `UPDATE vehicles
+          SET vin = COALESCE($3, vin),
+              make = COALESCE($4, make),
+              model = COALESCE($5, model),
+              production_year = COALESCE($6, production_year),
+              engine_code = COALESCE($7, engine_code),
+              updated_at = now()
+        WHERE user_id = $1 AND id = $2
+        RETURNING id, vin, make, model, production_year, engine_code,
+                  is_default, created_at, updated_at`,
+      [
+        input.userId,
+        input.vehicleId,
+        input.vin ?? null,
+        input.make ?? null,
+        input.model ?? null,
+        input.productionYear ?? null,
+        input.engineCode ?? null,
+      ],
+    );
+
+    return result.rows[0] ? this.toVehicle(result.rows[0]) : null;
   }
 
   private toVehicle(row: VehicleRow): Vehicle {

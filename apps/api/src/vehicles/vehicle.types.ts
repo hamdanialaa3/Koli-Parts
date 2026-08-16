@@ -10,6 +10,11 @@ export type SetDefaultVehicleInput = OwnerInput & {
   vehicleId: string;
 };
 
+export type UpdateVehicleInput = OwnerInput &
+  Partial<VehiclePayload> & {
+    vehicleId: string;
+  };
+
 type VehiclePayload = {
   vin?: string;
   make: string;

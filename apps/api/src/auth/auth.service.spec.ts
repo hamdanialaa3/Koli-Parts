@@ -1,3 +1,4 @@
+import { UnauthorizedException } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import type { AuthRepository } from './auth.repository';
 import type { KoliOneTokenVerifier } from './koli-one-token-verifier';
@@ -50,5 +51,29 @@ describe('AuthService', () => {
     expect(upsertExternalIdentity).toHaveBeenCalledWith(identity);
     expect(issueSession).toHaveBeenCalledWith(result.user.userId);
     expect(result.user.roles).toEqual([]);
+  });
+
+  it('extracts encoded session cookies and rejects malformed cookies', () => {
+    const service = new AuthService(
+      { verify: jest.fn() },
+      {
+        upsertExternalIdentity: jest.fn(),
+        issueSession: jest.fn(),
+        findSession: jest.fn(),
+        revokeSession: jest.fn(),
+      },
+      {
+        get: jest.fn((key: string) =>
+          key === 'SESSION_COOKIE_NAME' ? 'kp_session' : 604800,
+        ),
+      } as never,
+    );
+
+    expect(service.extractSessionToken('theme=dark; kp_session=a%3Db')).toBe(
+      'a=b',
+    );
+    expect(() => service.extractSessionToken('kp_session=%E0%A4%A')).toThrow(
+      UnauthorizedException,
+    );
   });
 });

@@ -56,7 +56,7 @@ paths:
           description: Session established
           headers:
             Set-Cookie:
-              description: Secure HttpOnly Koli Parts session cookie
+              description: Secure HttpOnly Koli Parts session cookie and readable signed CSRF cookie
               schema: { type: string }
           content:
             application/json:
@@ -81,8 +81,11 @@ paths:
       tags: [Auth]
       summary: Revoke the current Koli Parts session
       operationId: logout
+      parameters:
+        - $ref: '#/components/parameters/CsrfToken'
       responses:
         '204': { description: Session revoked }
+        '401': { $ref: '#/components/responses/Unauthorized' }
   /vehicles:
     get:
       tags: [Vehicles]
@@ -287,6 +290,12 @@ components:
       name: Idempotency-Key
       required: true
       schema: { type: string, minLength: 16, maxLength: 200 }
+    CsrfToken:
+      in: header
+      name: X-CSRF-Token
+      required: true
+      description: Must match the readable signed CSRF cookie issued with the session.
+      schema: { type: string, minLength: 20 }
     ProductId:
       in: path
       name: productId

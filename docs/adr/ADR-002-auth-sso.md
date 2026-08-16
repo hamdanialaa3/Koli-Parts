@@ -17,6 +17,7 @@ The initial accepted token contract is:
 - No Koli Parts password database.
 - No cross-domain shared cookie between `koli.one` and `koli-one.com`.
 - Koli Parts stores only hashed opaque session tokens.
+- State-changing browser requests require a signed double-submit CSRF token bound to the opaque session token.
 - Admin/RBAC privileges require explicit Koli Parts roles and later MFA assurance.
 - Revisit only with new evidence, provider terms or measured production needs.
 

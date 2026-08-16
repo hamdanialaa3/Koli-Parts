@@ -2,6 +2,7 @@ import { BadRequestException, UnauthorizedException } from '@nestjs/common';
 import type { Response } from 'express';
 import { AuthController } from './auth.controller';
 import type { AuthService } from './auth.service';
+import type { CsrfService } from './csrf.service';
 
 describe('AuthController', () => {
   it('sets an httpOnly session cookie after exchange', async () => {
@@ -20,9 +21,13 @@ describe('AuthController', () => {
         },
       }),
     } as unknown as AuthService;
+    const csrfService = {
+      cookieName: 'kp_csrf',
+      issueToken: jest.fn().mockReturnValue('csrf-token'),
+    } as unknown as CsrfService;
     const cookie = jest.fn();
     const response = { cookie } as unknown as Response;
-    const controller = new AuthController(authService);
+    const controller = new AuthController(authService, csrfService);
 
     const result = await controller.exchangeKoliOneAssertion(
       { assertion: 'a'.repeat(20) },
@@ -34,13 +39,24 @@ describe('AuthController', () => {
       'opaque-session-token',
       expect.objectContaining({ httpOnly: true, sameSite: 'lax', path: '/' }),
     );
+    expect(cookie).toHaveBeenCalledWith(
+      'kp_csrf',
+      'csrf-token',
+      expect.objectContaining({ httpOnly: false, sameSite: 'lax', path: '/' }),
+    );
     expect(result.roles).toEqual([]);
   });
 
   it('rejects current-user lookup without a session cookie', async () => {
-    const controller = new AuthController({
-      cookieName: 'kp_session',
-    } as AuthService);
+    const controller = new AuthController(
+      {
+        cookieName: 'kp_session',
+        getUserForCookieHeader: jest
+          .fn()
+          .mockRejectedValue(new UnauthorizedException()),
+      } as unknown as AuthService,
+      {} as CsrfService,
+    );
 
     await expect(controller.me(undefined)).rejects.toBeInstanceOf(
       UnauthorizedException,
@@ -48,9 +64,12 @@ describe('AuthController', () => {
   });
 
   it('rejects malformed exchange payloads as bad requests', async () => {
-    const controller = new AuthController({
-      cookieName: 'kp_session',
-    } as AuthService);
+    const controller = new AuthController(
+      {
+        cookieName: 'kp_session',
+      } as AuthService,
+      {} as CsrfService,
+    );
 
     await expect(
       controller.exchangeKoliOneAssertion(
@@ -60,13 +79,31 @@ describe('AuthController', () => {
     ).rejects.toBeInstanceOf(BadRequestException);
   });
 
-  it('rejects malformed session cookies', async () => {
-    const controller = new AuthController({
-      cookieName: 'kp_session',
-    } as AuthService);
+  it('clears both session and CSRF cookies on logout', async () => {
+    const logout = jest.fn();
+    const controller = new AuthController(
+      {
+        cookieName: 'kp_session',
+        logout,
+      } as unknown as AuthService,
+      {
+        cookieName: 'kp_csrf',
+      } as CsrfService,
+    );
+    const clearCookie = jest.fn();
+    const request = { sessionToken: 'opaque-session-token' };
+    const response = { clearCookie } as unknown as Response;
 
-    await expect(controller.me('kp_session=%E0%A4%A')).rejects.toBeInstanceOf(
-      UnauthorizedException,
+    await controller.logout(request as never, response);
+
+    expect(logout).toHaveBeenCalledWith('opaque-session-token');
+    expect(clearCookie).toHaveBeenCalledWith(
+      'kp_session',
+      expect.objectContaining({ httpOnly: true, path: '/' }),
+    );
+    expect(clearCookie).toHaveBeenCalledWith(
+      'kp_csrf',
+      expect.objectContaining({ httpOnly: false, path: '/' }),
     );
   });
 });

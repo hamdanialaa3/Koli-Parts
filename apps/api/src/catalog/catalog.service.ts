@@ -3,7 +3,7 @@ import {
   CATALOG_REPOSITORY,
   type CatalogRepository,
 } from './catalog.repository';
-import type { GetProductInput } from './catalog.types';
+import type { GetProductInput, SearchPartsInput } from './catalog.types';
 
 @Injectable()
 export class CatalogService {
@@ -14,5 +14,9 @@ export class CatalogService {
 
   getProduct(input: GetProductInput) {
     return this.repository.findProduct(input);
+  }
+
+  searchParts(input: SearchPartsInput) {
+    return this.repository.searchParts(input);
   }
 }

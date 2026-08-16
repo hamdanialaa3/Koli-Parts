@@ -5,9 +5,10 @@ import {
   PostgresCatalogRepository,
 } from './catalog.repository';
 import { CatalogService } from './catalog.service';
+import { SearchController } from './search.controller';
 
 @Module({
-  controllers: [CatalogController],
+  controllers: [CatalogController, SearchController],
   providers: [
     CatalogService,
     {

@@ -232,7 +232,7 @@ paths:
         - in: query
           name: q
           required: true
-          schema: { type: string, minLength: 1 }
+          schema: { type: string, minLength: 1, maxLength: 120 }
         - in: query
           name: vehicleId
           schema: { type: string, format: uuid }
@@ -245,6 +245,7 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/SearchResponse' }
+        '400': { description: Invalid search query }
   /products/{productId}:
     get:
       tags: [Products]
@@ -510,7 +511,7 @@ components:
         fitment: { $ref: '#/components/schemas/Fitment' }
     SearchResponse:
       type: object
-      required: [items, page]
+      required: [items, page, total]
       properties:
         items:
           type: array

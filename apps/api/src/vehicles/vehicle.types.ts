@@ -15,6 +15,12 @@ export type UpdateVehicleInput = OwnerInput &
     vehicleId: string;
   };
 
+export type VehicleCandidate = {
+  provider: string;
+  vehicle: VehiclePayload;
+  confidence: 'high' | 'medium' | 'low';
+};
+
 type VehiclePayload = {
   vin?: string;
   make: string;

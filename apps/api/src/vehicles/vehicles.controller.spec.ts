@@ -1,4 +1,8 @@
-import { BadRequestException, UnauthorizedException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ServiceUnavailableException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { VehiclesController } from './vehicles.controller';
 import type { VehiclesService } from './vehicles.service';
 
@@ -117,5 +121,25 @@ describe('VehiclesController', () => {
       ),
     ).rejects.toThrow(BadRequestException);
     expect(updateVehicle).not.toHaveBeenCalled();
+  });
+
+  it('normalizes VIN parse requests without fabricating candidates', () => {
+    const parseVin = jest.fn().mockReturnValue(null);
+    const controller = makeController({ parseVin });
+
+    expect(() => controller.parseVin({ vin: ' w0l0a7ec3f0000001 ' })).toThrow(
+      ServiceUnavailableException,
+    );
+    expect(parseVin).toHaveBeenCalledWith('W0L0A7EC3F0000001');
+  });
+
+  it('rejects invalid VIN parse payloads', () => {
+    const parseVin = jest.fn();
+    const controller = makeController({ parseVin });
+
+    expect(() => controller.parseVin({ vin: 'not-a-vin' })).toThrow(
+      BadRequestException,
+    );
+    expect(parseVin).not.toHaveBeenCalled();
   });
 });

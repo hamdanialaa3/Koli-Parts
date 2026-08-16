@@ -9,6 +9,7 @@ import {
   Post,
   Query,
   Req,
+  ServiceUnavailableException,
   UnauthorizedException,
   UseGuards,
 } from '@nestjs/common';
@@ -37,6 +38,13 @@ const vinSchema = z.preprocess(
     .regex(/^[A-HJ-NPR-Z0-9]{17}$/)
     .optional(),
 );
+const requiredVinSchema = z.preprocess(
+  (value) => {
+    if (typeof value !== 'string') return value;
+    return value.trim().toUpperCase();
+  },
+  z.string().regex(/^[A-HJ-NPR-Z0-9]{17}$/),
+);
 
 const createVehicleSchema = z
   .object({
@@ -49,6 +57,7 @@ const createVehicleSchema = z
   .strict();
 
 const updateVehicleSchema = createVehicleSchema.partial();
+const parseVinSchema = z.object({ vin: requiredVinSchema }).strict();
 const listVehiclesQuerySchema = z.object({
   limit: z.coerce.number().int().min(1).max(100).default(50),
 });
@@ -86,6 +95,21 @@ export class VehiclesController {
       userId: authUser.userId,
       ...parsedBody.data,
     });
+  }
+
+  @Post('parse-vin')
+  @UseGuards(CsrfGuard)
+  parseVin(@Body() body: unknown) {
+    const parsedBody = parseVinSchema.safeParse(body);
+    if (!parsedBody.success) {
+      throw new BadRequestException('Invalid VIN payload');
+    }
+
+    const candidate = this.vehiclesService.parseVin(parsedBody.data.vin);
+    if (!candidate) {
+      throw new ServiceUnavailableException('VIN provider unavailable');
+    }
+    return candidate;
   }
 
   @Post(':vehicleId/default')

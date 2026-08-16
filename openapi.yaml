@@ -241,6 +241,7 @@ paths:
       operationId: approveProcurement
       parameters:
         - $ref: '#/components/parameters/IdempotencyKey'
+        - $ref: '#/components/parameters/CsrfToken'
         - in: path
           name: procurementId
           required: true
@@ -257,7 +258,14 @@ paths:
       responses:
         '200':
           description: Approved; execution remains capability-gated
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ProcurementApproval' }
+        '400': { description: Invalid approval request }
+        '401': { $ref: '#/components/responses/Unauthorized' }
         '403': { description: Requires procurement_operator, admin, or super_admin role }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { description: Invalid state transition or idempotency key reuse mismatch }
   /webhooks/stripe:
     post:
       tags: [Webhooks]
@@ -413,3 +421,12 @@ components:
         id: { type: string, format: uuid }
         status: { type: string }
         total: { $ref: '#/components/schemas/Money' }
+    ProcurementApproval:
+      type: object
+      required: [procurementId, status, approvedBy, approvedAt, idempotentReplay]
+      properties:
+        procurementId: { type: string, format: uuid }
+        status: { type: string, const: APPROVED }
+        approvedBy: { type: string, format: uuid }
+        approvedAt: { type: string, format: date-time }
+        idempotentReplay: { type: boolean }

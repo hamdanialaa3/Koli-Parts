@@ -260,6 +260,7 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/ProductDetail' }
+        '400': { description: Invalid product request }
         '404': { $ref: '#/components/responses/NotFound' }
   /quotes:
     post:
@@ -523,6 +524,7 @@ components:
       properties:
         id: { type: string, format: uuid }
         title: { type: string }
+        brand: { type: string }
         oemNumbers: { type: array, items: { type: string } }
         fitment: { $ref: '#/components/schemas/Fitment' }
         offers:

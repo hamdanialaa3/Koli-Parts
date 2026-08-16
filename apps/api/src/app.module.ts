@@ -4,6 +4,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AdminModule } from './admin/admin.module';
 import { AuthModule } from './auth/auth.module';
+import { CatalogModule } from './catalog/catalog.module';
 import { configValidationSchema } from './config.schema';
 import { VehiclesModule } from './vehicles/vehicles.module';
 
@@ -25,6 +26,7 @@ import { VehiclesModule } from './vehicles/vehicles.module';
     }),
     AdminModule,
     AuthModule,
+    CatalogModule,
     VehiclesModule,
   ],
   controllers: [AppController],

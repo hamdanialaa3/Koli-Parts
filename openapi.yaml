@@ -235,6 +235,26 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/Order' }
+  /admin/procurements:
+    get:
+      tags: [Admin, Procurement]
+      operationId: listProcurementQueue
+      parameters:
+        - in: query
+          name: status
+          schema: { type: string, enum: [PENDING, REVIEW] }
+        - in: query
+          name: limit
+          schema: { type: integer, minimum: 1, maximum: 100, default: 25 }
+      responses:
+        '200':
+          description: Bounded procurement review queue
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ProcurementQueue' }
+        '400': { description: Invalid queue query }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { description: Requires procurement_operator, admin, or super_admin role }
   /admin/procurements/{procurementId}/approve:
     post:
       tags: [Admin, Procurement]
@@ -430,3 +450,33 @@ components:
         approvedBy: { type: string, format: uuid }
         approvedAt: { type: string, format: date-time }
         idempotentReplay: { type: boolean }
+    ProcurementQueue:
+      type: object
+      required: [items, limit]
+      properties:
+        limit: { type: integer, minimum: 1, maximum: 100 }
+        items:
+          type: array
+          items: { $ref: '#/components/schemas/ProcurementQueueItem' }
+    ProcurementQueueItem:
+      type: object
+      required:
+        - procurementId
+        - orderId
+        - procurementStatus
+        - orderStatus
+        - supplier
+        - totalMinor
+        - currency
+        - createdAt
+        - updatedAt
+      properties:
+        procurementId: { type: string, format: uuid }
+        orderId: { type: string, format: uuid }
+        procurementStatus: { type: string, enum: [PENDING, REVIEW] }
+        orderStatus: { type: string }
+        supplier: { type: string }
+        totalMinor: { type: integer, minimum: 0 }
+        currency: { type: string, const: EUR }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }

@@ -11,6 +11,10 @@ import type { Config } from '../config.schema';
 import type {
   ApprovedProcurement,
   ApproveProcurementInput,
+  ListProcurementQueueInput,
+  ProcurementQueue,
+  ProcurementQueueItem,
+  ProcurementQueueStatus,
 } from './admin-procurement.types';
 
 export const ADMIN_PROCUREMENT_REPOSITORY = Symbol(
@@ -19,6 +23,7 @@ export const ADMIN_PROCUREMENT_REPOSITORY = Symbol(
 
 export interface AdminProcurementRepository {
   approve(input: ApproveProcurementInput): Promise<ApprovedProcurement>;
+  listQueue(input: ListProcurementQueueInput): Promise<ProcurementQueue>;
 }
 
 @Injectable()
@@ -35,6 +40,52 @@ export class PostgresAdminProcurementRepository
 
   async onModuleDestroy(): Promise<void> {
     await this.pool.end();
+  }
+
+  async listQueue(input: ListProcurementQueueInput): Promise<ProcurementQueue> {
+    const statuses = input.status ? [input.status] : ['PENDING', 'REVIEW'];
+    const result = await this.pool.query<{
+      procurement_id: string;
+      order_id: string;
+      procurement_status: ProcurementQueueStatus;
+      order_status: string;
+      supplier: string;
+      total_minor: string;
+      currency: string;
+      created_at: Date;
+      updated_at: Date;
+    }>(
+      `SELECT p.id AS procurement_id,
+              p.order_id,
+              p.status AS procurement_status,
+              o.status AS order_status,
+              p.supplier,
+              o.total_minor,
+              o.currency,
+              p.created_at,
+              p.updated_at
+         FROM procurements p
+         JOIN orders o ON o.id = p.order_id
+        WHERE p.status = ANY($1::procurement_status[])
+        ORDER BY p.created_at ASC, p.id ASC
+        LIMIT $2`,
+      [statuses, input.limit],
+    );
+
+    return {
+      items: result.rows.map((row): ProcurementQueueItem => ({
+        procurementId: row.procurement_id,
+        orderId: row.order_id,
+        procurementStatus: row.procurement_status,
+        orderStatus: row.order_status,
+        supplier: row.supplier,
+        totalMinor: Number(row.total_minor),
+        currency: row.currency,
+        createdAt: row.created_at.toISOString(),
+        updatedAt: row.updated_at.toISOString(),
+      })),
+      limit: input.limit,
+    };
   }
 
   async approve(input: ApproveProcurementInput): Promise<ApprovedProcurement> {

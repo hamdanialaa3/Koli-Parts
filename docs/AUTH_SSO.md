@@ -29,6 +29,7 @@ No Koli One server session-cookie broker was found. The initial Koli Parts contr
 - run Firebase Admin SDK revocation checks where credentials are available;
 - provision/map `external_identities(provider='firebase', provider_subject=uid)`;
 - issue a Koli Parts opaque session token in a Secure/HttpOnly/SameSite cookie;
+- issue a readable signed CSRF cookie bound to the opaque session token;
 - initialize users with no privileged role.
 
 Flow:
@@ -59,7 +60,7 @@ sequenceDiagram
 - one-time/short-lived assertions,
 - issuer and audience verification,
 - session rotation after login,
-- CSRF protection,
+- `X-CSRF-Token` must match the signed readable CSRF cookie for state-changing browser requests,
 - secure/httpOnly/sameSite cookies,
 - logout/revocation behavior documented,
 - account deletion propagation,
@@ -72,6 +73,6 @@ sequenceDiagram
 ## Remaining decisions
 
 - Browser handoff route from Koli One to Koli Parts web.
-- CSRF token mechanism for state-changing browser requests.
+- Extend CSRF guard coverage as new state-changing browser endpoints are implemented.
 - Admin MFA assurance storage and role-management UI.
 - Account deletion propagation from Koli One to Koli Parts soft-deleted users.

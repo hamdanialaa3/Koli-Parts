@@ -126,6 +126,7 @@ export const configValidationSchema = z
     ADMIN_MFA_REQUIRED: strictBoolean(true),
     SESSION_COOKIE_NAME: z.string().default('kp_session'),
     SESSION_TTL_SECONDS: positiveInteger.default(60 * 60 * 24 * 7),
+    CSRF_COOKIE_NAME: z.string().default('kp_csrf'),
 
     // Safety flags
     DISABLE_EBAY_SYNC: strictBoolean(false),

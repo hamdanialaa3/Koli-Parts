@@ -47,9 +47,37 @@ export class AuthService {
     return user;
   }
 
+  async getUserForCookieHeader(
+    cookieHeader: string | undefined,
+  ): Promise<{ user: AuthenticatedUser; sessionToken: string }> {
+    const sessionToken = this.extractSessionToken(cookieHeader);
+    if (!sessionToken) {
+      throw new UnauthorizedException('Missing session');
+    }
+
+    const user = await this.getUserForSessionToken(sessionToken);
+    return { user, sessionToken };
+  }
+
   async logout(token: string | undefined): Promise<void> {
     if (token) {
       await this.repository.revokeSession(token);
+    }
+  }
+
+  extractSessionToken(cookieHeader: string | undefined): string | undefined {
+    if (!cookieHeader) return undefined;
+    const cookie = cookieHeader
+      .split(';')
+      .map((part) => part.trim())
+      .find((part) => part.startsWith(`${this.cookieName}=`));
+
+    if (!cookie) return undefined;
+
+    try {
+      return decodeURIComponent(cookie.split('=').slice(1).join('='));
+    } catch {
+      throw new UnauthorizedException('Invalid session cookie');
     }
   }
 }

@@ -14,6 +14,15 @@ export type AuthenticatedUser = {
   roles: string[];
 };
 
+export type AuthenticatedRequest = {
+  headers: {
+    cookie?: string;
+    'x-csrf-token'?: string | string[];
+  };
+  authUser?: AuthenticatedUser;
+  sessionToken?: string;
+};
+
 export type IssuedSession = {
   token: string;
   expiresAt: Date;

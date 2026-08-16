@@ -3,6 +3,8 @@ import {
   Body,
   Controller,
   Get,
+  NotFoundException,
+  Param,
   Post,
   Query,
   Req,
@@ -48,6 +50,7 @@ const createVehicleSchema = z
 const listVehiclesQuerySchema = z.object({
   limit: z.coerce.number().int().min(1).max(100).default(50),
 });
+const vehicleIdParamSchema = z.object({ vehicleId: z.string().uuid() });
 
 @Controller('vehicles')
 @UseGuards(SessionAuthGuard)
@@ -81,6 +84,25 @@ export class VehiclesController {
       userId: authUser.userId,
       ...parsedBody.data,
     });
+  }
+
+  @Post(':vehicleId/default')
+  @UseGuards(CsrfGuard)
+  async setDefaultVehicle(@Param() params: unknown, @Req() request: Request) {
+    const authUser = this.getAuthUser(request);
+    const parsedParams = vehicleIdParamSchema.safeParse(params);
+    if (!parsedParams.success) {
+      throw new BadRequestException('Invalid vehicle id');
+    }
+
+    const vehicle = await this.vehiclesService.setDefaultVehicle({
+      userId: authUser.userId,
+      vehicleId: parsedParams.data.vehicleId,
+    });
+    if (!vehicle) {
+      throw new NotFoundException('Vehicle not found');
+    }
+    return vehicle;
   }
 
   private getAuthUser(request: Request) {

@@ -4,6 +4,7 @@ import type { VehiclesService } from './vehicles.service';
 
 describe('VehiclesController', () => {
   const userId = '5f8768e3-df8d-4fd0-b72f-523cd8e8f001';
+  const vehicleId = '7a4074af-b4b0-4393-8f35-835494071d95';
   const request = { authUser: { userId, preferredLanguage: 'bg', roles: [] } };
   const makeController = (service: Partial<VehiclesService>) =>
     new VehiclesController(service as VehiclesService);
@@ -61,5 +62,27 @@ describe('VehiclesController', () => {
       UnauthorizedException,
     );
     expect(createVehicle).not.toHaveBeenCalled();
+  });
+
+  it('sets the authenticated user vehicle as default', async () => {
+    const setDefaultVehicle = jest.fn().mockResolvedValue({ id: vehicleId });
+    const controller = makeController({ setDefaultVehicle });
+
+    await controller.setDefaultVehicle({ vehicleId }, request as never);
+
+    expect(setDefaultVehicle).toHaveBeenCalledWith({ userId, vehicleId });
+  });
+
+  it('rejects invalid default vehicle ids', async () => {
+    const setDefaultVehicle = jest.fn();
+    const controller = makeController({ setDefaultVehicle });
+
+    await expect(
+      controller.setDefaultVehicle(
+        { vehicleId: 'not-a-uuid' },
+        request as never,
+      ),
+    ).rejects.toThrow(BadRequestException);
+    expect(setDefaultVehicle).not.toHaveBeenCalled();
   });
 });

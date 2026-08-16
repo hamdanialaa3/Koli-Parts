@@ -79,6 +79,7 @@ describe('PostgresCatalogRepository', () => {
 
     const result = await makeRepository().searchParts({
       query: 'brake',
+      identifierQuery: 'BRAKE',
       page: 1,
     });
 
@@ -103,7 +104,7 @@ describe('PostgresCatalogRepository', () => {
     });
     expect(mockPool.query).toHaveBeenCalledWith(
       expect.stringContaining("AND sl.currency = 'EUR'"),
-      ['%brake%', 20, 0],
+      ['%brake%', '%BRAKE%', 20, 0],
     );
   });
 });

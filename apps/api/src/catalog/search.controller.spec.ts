@@ -21,6 +21,7 @@ describe('SearchController', () => {
 
     expect(searchParts).toHaveBeenCalledWith({
       query: 'brake pads',
+      identifierQuery: 'BRAKEPADS',
       vehicleId,
       page: 2,
     });
@@ -34,6 +35,7 @@ describe('SearchController', () => {
 
     expect(searchParts).toHaveBeenCalledWith({
       query: 'oil filter',
+      identifierQuery: 'OILFILTER',
       page: 1,
       vehicleId: undefined,
     });

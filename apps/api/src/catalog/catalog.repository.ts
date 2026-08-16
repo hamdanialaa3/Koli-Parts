@@ -93,6 +93,9 @@ export class PostgresCatalogRepository
     const limit = 20;
     const offset = (input.page - 1) * limit;
     const pattern = `%${input.query}%`;
+    const identifierPattern = input.identifierQuery
+      ? `%${input.identifierQuery}%`
+      : null;
     const result = await this.pool.query<SearchRow>(
       `WITH matching_products AS (
          SELECT p.id AS product_id,
@@ -111,14 +114,22 @@ export class PostgresCatalogRepository
              OR sl.external_item_id ILIKE $1
              OR pi.value ILIKE $1
              OR pi.normalized_value ILIKE $1
+             OR (
+               $2::text IS NOT NULL
+               AND (
+                 regexp_replace(upper(sl.external_item_id), '[^A-Z0-9]', '', 'g') ILIKE $2
+                 OR regexp_replace(upper(pi.value), '[^A-Z0-9]', '', 'g') ILIKE $2
+                 OR upper(pi.normalized_value) ILIKE $2
+               )
+             )
           GROUP BY p.id, p.canonical_title, p.brand
        )
        SELECT product_id, title, brand, amount_minor,
               count(*) OVER() AS total_count
          FROM matching_products
         ORDER BY amount_minor ASC, title ASC, product_id ASC
-        LIMIT $2 OFFSET $3`,
-      [pattern, limit, offset],
+        LIMIT $3 OFFSET $4`,
+      [pattern, identifierPattern, limit, offset],
     );
 
     return {

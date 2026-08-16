@@ -1,6 +1,7 @@
 import { BadRequestException, Controller, Get, Query } from '@nestjs/common';
 import { z } from 'zod';
 import { CatalogService } from './catalog.service';
+import { normalizeIdentifierQuery } from './search-normalization';
 
 const searchQuerySchema = z
   .object({
@@ -24,6 +25,7 @@ export class SearchController {
     return this.catalogService.searchParts({
       query: parsedQuery.data.q,
       page: parsedQuery.data.page,
+      identifierQuery: normalizeIdentifierQuery(parsedQuery.data.q),
       vehicleId: parsedQuery.data.vehicleId,
     });
   }

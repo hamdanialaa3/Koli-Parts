@@ -11,7 +11,10 @@ import { configValidationSchema } from './config.schema';
       validate: (config) => {
         const result = configValidationSchema.safeParse(config);
         if (!result.success) {
-          console.error('❌ Invalid environment variables:', result.error.format());
+          console.error(
+            '❌ Invalid environment variables:',
+            result.error.format(),
+          );
           throw new Error('Config validation failed');
         }
         return result.data;

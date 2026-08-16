@@ -1,5 +1,11 @@
 # Current State Audit
 
+## Latest verification
+
+See `docs/SPRINT_1_VERIFICATION_20260816.md` for the current post-rebase
+Sprint 1 verification. This file preserves the starter-pack audit context and
+is no longer the latest execution evidence.
+
 ## Evidence inspected
 
 The supplied root contains `package.json`, `package-lock.json`, `turbo.json`, `.env.example`, `.gitignore`, and `START_MEIN_PLAN_1.0.md`.

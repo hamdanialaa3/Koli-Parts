@@ -12,7 +12,9 @@
     "build": "turbo run build",
     "lint": "turbo run lint",
     "type-check": "turbo run type-check",
-    "db:migrate": "psql $DATABASE_URL -f db/migrations/001_initial_schema.sql",
+    "test": "turbo run test",
+    "verify:config": "node scripts/verify-config.mjs",
+    "db:migrate": "node scripts/run-migration.mjs",
     "clean": "turbo run clean"
   },
   "devDependencies": {

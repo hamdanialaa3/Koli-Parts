@@ -11,17 +11,38 @@ jobs:
   quality:
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: koliparts
+          POSTGRES_PASSWORD: ci_password
+          POSTGRES_DB: koliparts_ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U koliparts -d koliparts_ci"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: npm
+      - name: Install PostgreSQL client
+        run: sudo apt-get update && sudo apt-get install -y postgresql-client
       - run: npm ci
       - run: npm run type-check
       - run: npm run lint
+      - run: npm test
       - run: npm run build
       - name: Dependency audit
         run: npm audit --audit-level=high
       - name: Verify starter configuration
-        run: node scripts/verify-config.mjs
+        run: npm run verify:config
+      - name: Validate initial migration
+        env:
+          DATABASE_URL: postgresql://koliparts:ci_password@localhost:5432/koliparts_ci
+        run: npm run db:migrate

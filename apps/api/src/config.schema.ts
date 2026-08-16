@@ -30,6 +30,8 @@ const strictBoolean = (defaultValue: boolean) =>
     return value;
   }, z.boolean());
 
+const positiveInteger = z.coerce.number().int().positive();
+
 export const configValidationSchema = z
   .object({
     NODE_ENV: z
@@ -63,6 +65,7 @@ export const configValidationSchema = z
     KOLI_ONE_AUTH_ISSUER: optionalNonEmptyString,
     KOLI_ONE_AUTH_AUDIENCE: optionalNonEmptyString,
     KOLI_ONE_FIREBASE_PROJECT_ID: optionalNonEmptyString,
+    KOLI_ONE_CHECK_REVOKED: strictBoolean(true),
 
     // eBay
     EBAY_ENV: z.enum(['sandbox', 'production']).default('sandbox'),
@@ -121,6 +124,8 @@ export const configValidationSchema = z
     }),
     TOKEN_ENCRYPTION_KEY_ID: z.string().default('local-dev-only'),
     ADMIN_MFA_REQUIRED: strictBoolean(true),
+    SESSION_COOKIE_NAME: z.string().default('kp_session'),
+    SESSION_TTL_SECONDS: positiveInteger.default(60 * 60 * 24 * 7),
 
     // Safety flags
     DISABLE_EBAY_SYNC: strictBoolean(false),
@@ -137,6 +142,17 @@ export const configValidationSchema = z
       .default('info'),
   })
   .superRefine((config, ctx) => {
+    if (
+      config.NODE_ENV === 'production' &&
+      !config.KOLI_ONE_FIREBASE_PROJECT_ID
+    ) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['KOLI_ONE_FIREBASE_PROJECT_ID'],
+        message: 'KOLI_ONE_FIREBASE_PROJECT_ID is required in production',
+      });
+    }
+
     if (config.NODE_ENV !== 'production') return;
 
     for (const [key, value] of Object.entries(config)) {

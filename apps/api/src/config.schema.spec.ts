@@ -54,4 +54,17 @@ describe('configValidationSchema', () => {
       }),
     ).toThrow();
   });
+
+  it('requires the audited Koli One Firebase project in production', () => {
+    expect(() =>
+      configValidationSchema.parse({
+        ...validConfig,
+        NODE_ENV: 'production',
+        SESSION_SECRET: 'prod-session-secret-value-with-enough-length',
+        STRIPE_SECRET_KEY: 'sk_live_realistic_value',
+        STRIPE_WEBHOOK_SECRET: 'whsec_realistic_value',
+        TOKEN_ENCRYPTION_KEY_ID: 'prod-key-id',
+      }),
+    ).toThrow();
+  });
 });

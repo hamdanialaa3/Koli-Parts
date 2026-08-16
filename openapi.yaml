@@ -121,6 +121,30 @@ paths:
               schema: { $ref: '#/components/schemas/Vehicle' }
         '400': { description: Invalid vehicle payload }
         '401': { $ref: '#/components/responses/Unauthorized' }
+  /vehicles/{vehicleId}:
+    patch:
+      tags: [Vehicles]
+      operationId: updateVehicle
+      parameters:
+        - in: path
+          name: vehicleId
+          required: true
+          schema: { type: string, format: uuid }
+        - $ref: '#/components/parameters/CsrfToken'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/UpdateVehicle' }
+      responses:
+        '200':
+          description: Updated vehicle
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Vehicle' }
+        '400': { description: Invalid vehicle update }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { description: Vehicle not found }
   /vehicles/{vehicleId}/default:
     post:
       tags: [Vehicles]
@@ -380,6 +404,16 @@ components:
       type: object
       required: [make, model]
       additionalProperties: false
+      properties:
+        vin: { type: string, minLength: 17, maxLength: 17 }
+        make: { type: string, minLength: 1, maxLength: 80 }
+        model: { type: string, minLength: 1, maxLength: 120 }
+        productionYear: { type: integer, minimum: 1886, maximum: 2200 }
+        engineCode: { type: string, minLength: 1, maxLength: 80 }
+    UpdateVehicle:
+      type: object
+      additionalProperties: false
+      minProperties: 1
       properties:
         vin: { type: string, minLength: 17, maxLength: 17 }
         make: { type: string, minLength: 1, maxLength: 80 }

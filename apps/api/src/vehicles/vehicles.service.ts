@@ -7,6 +7,7 @@ import type {
   CreateVehicleInput,
   ListVehiclesInput,
   SetDefaultVehicleInput,
+  UpdateVehicleInput,
 } from './vehicle.types';
 
 export class VehiclesService {
@@ -25,5 +26,9 @@ export class VehiclesService {
 
   setDefaultVehicle(input: SetDefaultVehicleInput) {
     return this.repository.setDefault(input);
+  }
+
+  updateVehicle(input: UpdateVehicleInput) {
+    return this.repository.update(input);
   }
 }

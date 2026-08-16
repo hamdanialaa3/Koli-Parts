@@ -3,7 +3,11 @@ import {
   VEHICLES_REPOSITORY,
   type VehiclesRepository,
 } from './vehicles.repository';
-import type { CreateVehicleInput, ListVehiclesInput } from './vehicle.types';
+import type {
+  CreateVehicleInput,
+  ListVehiclesInput,
+  SetDefaultVehicleInput,
+} from './vehicle.types';
 
 export class VehiclesService {
   constructor(
@@ -17,5 +21,9 @@ export class VehiclesService {
 
   createVehicle(input: CreateVehicleInput) {
     return this.repository.create(input);
+  }
+
+  setDefaultVehicle(input: SetDefaultVehicleInput) {
+    return this.repository.setDefault(input);
   }
 }

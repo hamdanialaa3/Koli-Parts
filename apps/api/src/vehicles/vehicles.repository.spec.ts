@@ -1,6 +1,10 @@
 import { PostgresVehiclesRepository } from './vehicles.repository';
 
-const mockPool = { query: jest.fn(), end: jest.fn() };
+const mockClient = {
+  query: jest.fn(),
+  release: jest.fn(),
+};
+const mockPool = { query: jest.fn(), connect: jest.fn(), end: jest.fn() };
 
 jest.mock('pg', () => ({
   Pool: jest.fn(() => mockPool),
@@ -23,6 +27,8 @@ describe('PostgresVehiclesRepository', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockPool.query.mockReset();
+    mockPool.connect.mockResolvedValue(mockClient);
+    mockClient.query.mockReset();
   });
 
   it('lists only vehicles owned by the authenticated user', async () => {
@@ -53,6 +59,44 @@ describe('PostgresVehiclesRepository', () => {
       expect.stringContaining('INSERT INTO vehicles'),
       [userId, null, 'Opel', 'Astra', null, null],
     );
+  });
+
+  it('sets a default vehicle only within the authenticated user scope', async () => {
+    mockClient.query
+      .mockResolvedValueOnce({})
+      .mockResolvedValueOnce({})
+      .mockResolvedValueOnce({ rows: [row] })
+      .mockResolvedValueOnce({});
+
+    const result = await makeRepository().setDefault({
+      userId,
+      vehicleId: row.id,
+    });
+
+    expect(result?.id).toBe(row.id);
+    expect(mockClient.query).toHaveBeenNthCalledWith(2, expect.any(String), [
+      userId,
+    ]);
+    expect(mockClient.query).toHaveBeenNthCalledWith(3, expect.any(String), [
+      userId,
+      row.id,
+    ]);
+    expect(mockClient.query).toHaveBeenLastCalledWith('COMMIT');
+    expect(mockClient.release).toHaveBeenCalled();
+  });
+
+  it('rolls back default selection when the vehicle is not owned by the user', async () => {
+    mockClient.query
+      .mockResolvedValueOnce({})
+      .mockResolvedValueOnce({})
+      .mockResolvedValueOnce({ rows: [] })
+      .mockResolvedValueOnce({});
+
+    await expect(
+      makeRepository().setDefault({ userId, vehicleId: row.id }),
+    ).resolves.toBeNull();
+
+    expect(mockClient.query).toHaveBeenLastCalledWith('ROLLBACK');
   });
 });
 

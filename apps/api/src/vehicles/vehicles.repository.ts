@@ -5,6 +5,7 @@ import type { Config } from '../config.schema';
 import type {
   CreateVehicleInput,
   ListVehiclesInput,
+  SetDefaultVehicleInput,
   Vehicle,
 } from './vehicle.types';
 
@@ -13,6 +14,7 @@ export const VEHICLES_REPOSITORY = Symbol('VEHICLES_REPOSITORY');
 export interface VehiclesRepository {
   list(input: ListVehiclesInput): Promise<Vehicle[]>;
   create(input: CreateVehicleInput): Promise<Vehicle>;
+  setDefault(input: SetDefaultVehicleInput): Promise<Vehicle | null>;
 }
 
 type VehicleRow = {
@@ -75,6 +77,40 @@ export class PostgresVehiclesRepository
     );
 
     return this.toVehicle(result.rows[0]);
+  }
+
+  async setDefault(input: SetDefaultVehicleInput): Promise<Vehicle | null> {
+    const client = await this.pool.connect();
+    try {
+      await client.query('BEGIN');
+      await client.query(
+        `UPDATE vehicles
+            SET is_default = false, updated_at = now()
+          WHERE user_id = $1 AND is_default = true`,
+        [input.userId],
+      );
+      const result = await client.query<VehicleRow>(
+        `UPDATE vehicles
+            SET is_default = true, updated_at = now()
+          WHERE user_id = $1 AND id = $2
+          RETURNING id, vin, make, model, production_year, engine_code,
+                    is_default, created_at, updated_at`,
+        [input.userId, input.vehicleId],
+      );
+
+      if (!result.rows[0]) {
+        await client.query('ROLLBACK');
+        return null;
+      }
+
+      await client.query('COMMIT');
+      return this.toVehicle(result.rows[0]);
+    } catch (error) {
+      await client.query('ROLLBACK');
+      throw error;
+    } finally {
+      client.release();
+    }
   }
 
   private toVehicle(row: VehicleRow): Vehicle {

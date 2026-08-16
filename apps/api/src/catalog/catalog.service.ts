@@ -1,5 +1,9 @@
 import { Inject, Injectable } from '@nestjs/common';
 import {
+  CATALOG_SEARCH_PROVIDER,
+  type CatalogSearchProvider,
+} from './catalog-search.provider';
+import {
   CATALOG_REPOSITORY,
   type CatalogRepository,
 } from './catalog.repository';
@@ -10,6 +14,8 @@ export class CatalogService {
   constructor(
     @Inject(CATALOG_REPOSITORY)
     private readonly repository: CatalogRepository,
+    @Inject(CATALOG_SEARCH_PROVIDER)
+    private readonly searchProvider: CatalogSearchProvider,
   ) {}
 
   getProduct(input: GetProductInput) {
@@ -17,6 +23,6 @@ export class CatalogService {
   }
 
   searchParts(input: SearchPartsInput) {
-    return this.repository.searchParts(input);
+    return this.searchProvider.searchParts(input);
   }
 }

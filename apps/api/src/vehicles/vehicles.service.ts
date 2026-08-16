@@ -7,6 +7,7 @@ import {
 } from './vehicles.repository';
 import type {
   CreateVehicleInput,
+  GetVehicleInput,
   ListVehiclesInput,
   SetDefaultVehicleInput,
   UpdateVehicleInput,
@@ -23,6 +24,10 @@ export class VehiclesService {
 
   listVehicles(input: ListVehiclesInput) {
     return this.repository.list(input);
+  }
+
+  getVehicle(input: GetVehicleInput) {
+    return this.repository.find(input);
   }
 
   createVehicle(input: CreateVehicleInput) {

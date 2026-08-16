@@ -4,6 +4,7 @@ import { Pool } from 'pg';
 import type { Config } from '../config.schema';
 import type {
   CreateVehicleInput,
+  GetVehicleInput,
   ListVehiclesInput,
   SetDefaultVehicleInput,
   UpdateVehicleInput,
@@ -14,6 +15,7 @@ export const VEHICLES_REPOSITORY = Symbol('VEHICLES_REPOSITORY');
 
 export interface VehiclesRepository {
   list(input: ListVehiclesInput): Promise<Vehicle[]>;
+  find(input: GetVehicleInput): Promise<Vehicle | null>;
   create(input: CreateVehicleInput): Promise<Vehicle>;
   setDefault(input: SetDefaultVehicleInput): Promise<Vehicle | null>;
   update(input: UpdateVehicleInput): Promise<Vehicle | null>;
@@ -59,6 +61,18 @@ export class PostgresVehiclesRepository
     );
 
     return result.rows.map((row) => this.toVehicle(row));
+  }
+
+  async find(input: GetVehicleInput): Promise<Vehicle | null> {
+    const result = await this.pool.query<VehicleRow>(
+      `SELECT id, vin, make, model, production_year, engine_code,
+              is_default, created_at, updated_at
+         FROM vehicles
+        WHERE user_id = $1 AND id = $2`,
+      [input.userId, input.vehicleId],
+    );
+
+    return result.rows[0] ? this.toVehicle(result.rows[0]) : null;
   }
 
   async create(input: CreateVehicleInput): Promise<Vehicle> {

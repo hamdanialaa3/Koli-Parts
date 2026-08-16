@@ -24,6 +24,25 @@ describe('VehiclesController', () => {
     expect(listVehicles).toHaveBeenNthCalledWith(2, { userId, limit: 50 });
   });
 
+  it('gets one vehicle for the authenticated user', async () => {
+    const getVehicle = jest.fn().mockResolvedValue({ id: vehicleId });
+    const controller = makeController({ getVehicle });
+
+    await controller.getVehicle({ vehicleId }, request as never);
+
+    expect(getVehicle).toHaveBeenCalledWith({ userId, vehicleId });
+  });
+
+  it('rejects invalid single vehicle ids', async () => {
+    const getVehicle = jest.fn();
+    const controller = makeController({ getVehicle });
+
+    await expect(
+      controller.getVehicle({ vehicleId: 'not-a-uuid' }, request as never),
+    ).rejects.toThrow(BadRequestException);
+    expect(getVehicle).not.toHaveBeenCalled();
+  });
+
   it('creates vehicles from session ownership and normalized payload', async () => {
     const createVehicle = jest.fn().mockResolvedValue({});
     const controller = makeController({ createVehicle });

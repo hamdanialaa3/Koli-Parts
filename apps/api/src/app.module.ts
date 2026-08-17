@@ -6,6 +6,7 @@ import { AdminModule } from './admin/admin.module';
 import { AuthModule } from './auth/auth.module';
 import { CatalogModule } from './catalog/catalog.module';
 import { configValidationSchema } from './config.schema';
+import { FitmentModule } from './fitment/fitment.module';
 import { VehiclesModule } from './vehicles/vehicles.module';
 
 @Module({
@@ -27,6 +28,7 @@ import { VehiclesModule } from './vehicles/vehicles.module';
     AdminModule,
     AuthModule,
     CatalogModule,
+    FitmentModule,
     VehiclesModule,
   ],
   controllers: [AppController],

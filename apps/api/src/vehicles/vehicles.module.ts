@@ -6,6 +6,10 @@ import {
   VEHICLES_REPOSITORY,
 } from './vehicles.repository';
 import { VehiclesService } from './vehicles.service';
+import {
+  UnavailableVinDecoderProvider,
+  VIN_DECODER_PROVIDER,
+} from './vin-provider';
 
 @Module({
   imports: [AuthModule],
@@ -15,6 +19,10 @@ import { VehiclesService } from './vehicles.service';
     {
       provide: VEHICLES_REPOSITORY,
       useClass: PostgresVehiclesRepository,
+    },
+    {
+      provide: VIN_DECODER_PROVIDER,
+      useClass: UnavailableVinDecoderProvider,
     },
   ],
 })

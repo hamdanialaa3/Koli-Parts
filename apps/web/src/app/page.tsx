@@ -1,4 +1,8 @@
 import Form from "next/form";
+import {
+  FitmentStatus,
+  type FitmentStatusValue,
+} from "@/components/fitment-status";
 
 type PageSearchParams = Promise<{
   q?: string | string[];
@@ -16,10 +20,10 @@ type SearchItem = {
   brand?: string;
   price: Money;
   fitment: {
-    status: "UNKNOWN";
-    ruleScore: 0;
-    calibratedProbability: null;
-    evidence: Record<string, never>[];
+    status: FitmentStatusValue;
+    ruleScore: number;
+    calibratedProbability: number | null;
+    evidence: Record<string, unknown>[];
     warnings?: string[];
   };
 };
@@ -158,9 +162,13 @@ function ResultsPanel({ state }: { state: SearchState }) {
                 <p className="text-lg font-semibold text-[var(--koli-text)]">
                   {formatPrice(item.price)}
                 </p>
-                <p className="mt-1 text-sm text-[var(--koli-warning)]">
-                  Съвместимост: непроверена
-                </p>
+                <div className="mt-3 sm:max-w-64">
+                  <FitmentStatus
+                    status={item.fitment.status}
+                    ruleScore={item.fitment.ruleScore}
+                    warnings={item.fitment.warnings}
+                  />
+                </div>
               </div>
             </div>
           </article>

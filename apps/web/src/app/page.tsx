@@ -1,65 +1,224 @@
-import Image from "next/image";
+import Form from "next/form";
 
-export default function Home() {
-  return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+type PageSearchParams = Promise<{
+  q?: string | string[];
+  page?: string | string[];
+}>;
+
+type Money = {
+  amountMinor: number;
+  currency: "EUR";
+};
+
+type SearchItem = {
+  productId: string;
+  title: string;
+  brand?: string;
+  price: Money;
+  fitment: {
+    status: "UNKNOWN";
+    ruleScore: 0;
+    calibratedProbability: null;
+    evidence: Record<string, never>[];
+    warnings?: string[];
+  };
+};
+
+type SearchResponse = {
+  items: SearchItem[];
+  page: number;
+  total: number;
+};
+
+type SearchState =
+  | { status: "idle" }
+  | { status: "success"; data: SearchResponse }
+  | { status: "invalid"; message: string }
+  | { status: "error"; message: string };
+
+const apiBaseUrl = process.env.API_PUBLIC_URL ?? "http://localhost:4000";
+
+function firstParam(value: string | string[] | undefined) {
+  if (Array.isArray(value)) return value[0];
+  return value;
+}
+
+function parsePage(value: string | string[] | undefined) {
+  const rawPage = firstParam(value);
+  if (!rawPage) return 1;
+
+  const page = Number(rawPage);
+  return Number.isInteger(page) && page > 0 ? page : 1;
+}
+
+function formatPrice(price: Money) {
+  return new Intl.NumberFormat("bg-BG", {
+    style: "currency",
+    currency: price.currency,
+  }).format(price.amountMinor / 100);
+}
+
+async function searchParts(query: string, page: number): Promise<SearchState> {
+  if (!query) return { status: "idle" };
+  if (query.length > 120) {
+    return { status: "invalid", message: "Заявката е твърде дълга." };
+  }
+
+  const params = new URLSearchParams({ q: query, page: String(page) });
+
+  try {
+    const response = await fetch(`${apiBaseUrl}/search?${params.toString()}`, {
+      cache: "no-store",
+    });
+
+    if (response.status === 400) {
+      return { status: "invalid", message: "Проверете въведения номер или текст." };
+    }
+
+    if (!response.ok) {
+      return { status: "error", message: "Търсенето временно не е налично." };
+    }
+
+    const data = (await response.json()) as SearchResponse;
+    return { status: "success", data };
+  } catch {
+    return { status: "error", message: "API услугата не отговори." };
+  }
+}
+
+function ResultsPanel({ state }: { state: SearchState }) {
+  if (state.status === "idle") {
+    return (
+      <section className="border-t border-[var(--koli-divider)] py-8 text-[var(--koli-text-secondary)]">
+        Въведете OEM номер, номер на част или име на продукт.
+      </section>
+    );
+  }
+
+  if (state.status === "invalid" || state.status === "error") {
+    return (
+      <section
+        className="border-t border-[var(--koli-divider)] py-8"
+        aria-live="polite"
+      >
+        <div className="rounded-md border border-[var(--koli-error)] bg-[var(--koli-surface)] p-4 text-[var(--koli-error)]">
+          {state.message}
+        </div>
+      </section>
+    );
+  }
+
+  if (state.data.items.length === 0) {
+    return (
+      <section className="border-t border-[var(--koli-divider)] py-8">
+        <div className="rounded-md border border-[var(--koli-divider)] bg-[var(--koli-surface)] p-5">
+          <h2 className="font-semibold text-[var(--koli-text)]">Няма намерени части</h2>
+          <p className="mt-2 text-sm text-[var(--koli-text-secondary)]">
+            Опитайте с OEM номер без интервали или с по-кратко име на част.
           </p>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+      </section>
+    );
+  }
+
+  return (
+    <section className="border-t border-[var(--koli-divider)] py-8">
+      <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <h2 className="text-xl font-semibold text-[var(--koli-text)]">Резултати</h2>
+          <p className="text-sm text-[var(--koli-text-muted)]">
+            {state.data.total} намерени продукта
+          </p>
         </div>
-      </main>
-    </div>
+        <span className="rounded-full bg-[var(--koli-led-soft)] px-3 py-1 text-sm font-medium text-[var(--koli-secondary)]">
+          Страница {state.data.page}
+        </span>
+      </div>
+
+      <div className="grid gap-3">
+        {state.data.items.map((item) => (
+          <article
+            key={item.productId}
+            className="rounded-md border border-[var(--koli-divider)] bg-[var(--koli-surface)] p-4 shadow-sm"
+          >
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+              <div className="min-w-0">
+                <p className="text-sm font-medium text-[var(--koli-primary)]">
+                  {item.brand ?? "Марка не е посочена"}
+                </p>
+                <h3 className="mt-1 text-lg font-semibold text-[var(--koli-text)]">
+                  {item.title}
+                </h3>
+                <p className="mt-2 text-sm text-[var(--koli-text-muted)]">
+                  ID продукт: {item.productId}
+                </p>
+              </div>
+
+              <div className="shrink-0 text-left sm:text-right">
+                <p className="text-lg font-semibold text-[var(--koli-text)]">
+                  {formatPrice(item.price)}
+                </p>
+                <p className="mt-1 text-sm text-[var(--koli-warning)]">
+                  Съвместимост: непроверена
+                </p>
+              </div>
+            </div>
+          </article>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+export default async function Home({
+  searchParams,
+}: {
+  searchParams: PageSearchParams;
+}) {
+  const params = await searchParams;
+  const query = (firstParam(params.q) ?? "").trim();
+  const page = parsePage(params.page);
+  const searchState = await searchParts(query, page);
+
+  return (
+    <main className="min-h-screen bg-[var(--koli-bg)] px-4 py-6 text-[var(--koli-text)] sm:px-6 lg:px-8">
+      <div className="mx-auto flex w-full max-w-5xl flex-col gap-8">
+        <header className="flex flex-col gap-3 border-b border-[var(--koli-divider)] pb-6">
+          <p className="text-sm font-semibold uppercase tracking-[0.08em] text-[var(--koli-primary)]">
+            Koli Parts
+          </p>
+          <h1 className="max-w-3xl text-3xl font-bold leading-tight sm:text-4xl">
+            Търсене на авточасти по OEM номер, марка или име
+          </h1>
+          <p className="max-w-2xl text-base leading-7 text-[var(--koli-text-secondary)]">
+            Виждате само реални резултати от API. Когато съвместимостта още не е
+            проверена, интерфейсът го показва ясно.
+          </p>
+        </header>
+
+        <Form action="/" className="flex flex-col gap-3 sm:flex-row">
+          <label className="sr-only" htmlFor="q">
+            Заявка за търсене
+          </label>
+          <input
+            id="q"
+            name="q"
+            type="search"
+            maxLength={120}
+            defaultValue={query}
+            placeholder="Напр. 34116858910"
+            className="min-h-12 flex-1 rounded-md border border-[var(--koli-border)] bg-[var(--koli-surface)] px-4 text-base text-[var(--koli-text)] outline-none transition focus:border-[var(--koli-primary)] focus:ring-2 focus:ring-[var(--koli-led)]"
+          />
+          <button
+            type="submit"
+            className="min-h-12 rounded-md bg-[var(--koli-primary)] px-6 text-base font-semibold text-[var(--koli-on-primary)] transition hover:brightness-95 focus:outline-none focus:ring-2 focus:ring-[var(--koli-led)] focus:ring-offset-2"
+          >
+            Търси
+          </button>
+        </Form>
+
+        <ResultsPanel state={searchState} />
+      </div>
+    </main>
   );
 }

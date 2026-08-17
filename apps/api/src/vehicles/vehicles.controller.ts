@@ -119,13 +119,13 @@ export class VehiclesController {
 
   @Post('parse-vin')
   @UseGuards(CsrfGuard)
-  parseVin(@Body() body: unknown) {
+  async parseVin(@Body() body: unknown) {
     const parsedBody = parseVinSchema.safeParse(body);
     if (!parsedBody.success) {
       throw new BadRequestException('Invalid VIN payload');
     }
 
-    const candidate = this.vehiclesService.parseVin(parsedBody.data.vin);
+    const candidate = await this.vehiclesService.parseVin(parsedBody.data.vin);
     if (!candidate) {
       throw new ServiceUnavailableException('VIN provider unavailable');
     }

@@ -181,21 +181,21 @@ describe('VehiclesController', () => {
     ).rejects.toThrow(ConflictException);
   });
 
-  it('normalizes VIN parse requests without fabricating candidates', () => {
-    const parseVin = jest.fn().mockReturnValue(null);
+  it('normalizes VIN parse requests without fabricating candidates', async () => {
+    const parseVin = jest.fn().mockResolvedValue(null);
     const controller = makeController({ parseVin });
 
-    expect(() => controller.parseVin({ vin: ' w0l0a7ec3f0000001 ' })).toThrow(
-      ServiceUnavailableException,
-    );
+    await expect(
+      controller.parseVin({ vin: ' w0l0a7ec3f0000001 ' }),
+    ).rejects.toThrow(ServiceUnavailableException);
     expect(parseVin).toHaveBeenCalledWith('W0L0A7EC3F0000001');
   });
 
-  it('rejects invalid VIN parse payloads', () => {
+  it('rejects invalid VIN parse payloads', async () => {
     const parseVin = jest.fn();
     const controller = makeController({ parseVin });
 
-    expect(() => controller.parseVin({ vin: 'not-a-vin' })).toThrow(
+    await expect(controller.parseVin({ vin: 'not-a-vin' })).rejects.toThrow(
       BadRequestException,
     );
     expect(parseVin).not.toHaveBeenCalled();

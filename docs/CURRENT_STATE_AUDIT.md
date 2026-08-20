@@ -1,54 +1,19 @@
 # Current State Audit
 
-## Latest verification
+Updated: 2026-08-20 from `origin/main` at merge PR #20.
 
-See `docs/SPRINT_1_VERIFICATION_20260816.md` for the current post-rebase
-Sprint 1 verification. This file preserves the starter-pack audit context and
-is no longer the latest execution evidence.
+| Area | Current state |
+|---|---|
+| Platform | Baseline exists; 2 procurement tests currently fail on expired fixtures |
+| Identity | Koli One exchange, identity mapping, sessions, CSRF and RBAC |
+| Vehicles | Authenticated Garage CRUD and VIN provider contract |
+| Catalog | Product detail, Postgres search, normalization and initial web UI |
+| Fitment | Persistence and status UI exist; evaluator remains |
+| Procurement | Admin queue and guarded approval only |
 
-## Evidence inspected
+Real supplier ingestion, licensed TecDoc/VIN data, fitment evaluation, quote,
+payment, order completion, full procurement, returns and production operations
+remain unfinished. Automatic procurement stays disabled. ADR-004 still marks
+Meilisearch as proposed while the working MVP search uses Postgres.
 
-The supplied root contains `package.json`, `package-lock.json`, `turbo.json`, `.env.example`, `.gitignore`, and `START_MEIN_PLAN_1.0.md`.
-
-### Repository baseline
-
-| Area | Finding | Status |
-|---|---|---|
-| Monorepo | npm workspaces `apps/*`, `packages/*` | READY |
-| Task runner | Turbo 2.x | READY |
-| Runtime | Node >=20 | READY |
-| API | lockfile includes NestJS 11 app | VERIFY source tree locally |
-| Web | lockfile includes Next.js 16.2.12 / React 19.2.4 app | VERIFY source tree locally |
-| DB command | root expects `db/migrations/001_initial_schema.sql` | MISSING in supplied files |
-| Redis | env placeholders exist | READY for local compose |
-| eBay env | absent | MISSING |
-| Stripe | test placeholders exist | PARTIAL |
-| Econt | demo values exist in old env | REVIEW/ROTATE if real credentials |
-| Search | SPEC mentions Meilisearch/OpenSearch; no supplied implementation evidence | VERIFY |
-| TecDoc/VIN | planned only in supplied material | BLOCKED by provider selection/license |
-
-## Contradictions
-
-### 1. Business model wording
-Root `package.json` describes “B2B wholesale from Germany”, while the plan describes eBay DE dropshipping. Recommendation: adopt a hybrid `SupplierAdapter` architecture and let business choose supplier channels without rewriting the core.
-
-### 2. eBay automated purchasing assumption
-The old plan includes an internal endpoint named as if it can execute an eBay purchase. Current eBay documentation does not justify that assumption for DE→BG. Order API is Limited Release and current Buy checkout rules require domestic delivery within the marketplace country.
-
-### 3. Visual-system drift inside Koli One
-Koli One's generated theme tokens and legacy design-system constants do not perfectly match. New Koli Parts work must use semantic generated theme variables and document migrations rather than mix both token generations.
-
-### 4. Environment file scope
-The old `.env.example` has no eBay configuration and includes supplier placeholders centered on B2B wholesalers. This pack supplies a provider-neutral and eBay-aware version.
-
-## Immediate audit commands for the local machine
-
-```powershell
-cd C:\Users\hamda\Desktop\Koli_Parts_Root
-Get-ChildItem -Recurse -Depth 3 | Select-Object FullName
-npm run type-check
-npm run lint
-npm run build
-```
-
-Do not delete or restructure working `apps/api` or `apps/web` until their actual source is reviewed.
+Use `ACTIVE_PLAN.md` for execution and `COMPLETED_WORK.md` for delivery history.

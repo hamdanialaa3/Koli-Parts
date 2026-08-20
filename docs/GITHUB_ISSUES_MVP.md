@@ -1,58 +1,54 @@
-# MVP GitHub Issues
+# Remaining MVP Work Items
 
-## EPIC-00 Current repository audit
-1. **Audit apps/api and apps/web against PROJECT_SPEC 2.0** — acceptance: module map + build/lint/type-check status + conflicts documented.
-2. **Ratify package/workspace boundaries** — acceptance: ADR-001 approved.
+Original IDs are retained for traceability. Completed items are recorded in
+`COMPLETED_WORK.md` and intentionally do not appear here.
 
-## EPIC-01 eBay feasibility
-3. **Create eBay Sandbox/Production key inventory (no secrets in issue)** — acceptance: owners/status recorded.
-4. **Implement app-token service + Browse search POC** — acceptance: EBAY_DE fixed-price search works with retries/metrics.
-5. **Submit Buy API business model review** — external dependency; acceptance: application/ticket IDs recorded privately.
-6. **Lock eBay automatedOrdering capability false** — acceptance: cannot execute unsupported ordering in code/config.
+## External decisions
 
-## EPIC-02 Identity
-7. **Audit Koli One Firebase/auth flow** — acceptance: issuer/audience/session/revocation/roles documented.
-8. **Implement external_identities mapping** — acceptance: one Koli One subject maps idempotently to one Koli Parts user.
-9. **Implement SSO exchange endpoint** — acceptance: replay/invalid issuer/audience tests pass.
+3. **Record eBay Sandbox/Production key inventory** without secrets.
+5. **Submit eBay Buy API business-model review** and record private ticket IDs.
+20. **Decide TecDoc commercial and data-license path** before integration.
 
-## EPIC-03 Catalog
-10. **Implement Product/SupplierListing repositories**.
-11. **Normalize eBay Browse DTO**.
-12. **Persist listing snapshots**.
-13. **Implement seller entity/metrics foundation**.
+## Supplier catalog
 
-## EPIC-04 Search
-14. **Start Meilisearch locally and create index schema**.
-15. **Implement search provider interface**.
-16. **Build BG/EN/DE identifier normalization**.
-17. **Build search result UI with Koli One tokens**.
+4. **Implement eBay app-token service and Browse adapter** with retries and
+   metrics; automated ordering stays false.
+10. **Complete Product/SupplierListing write repositories**; read-only catalog
+    detail already exists.
+11. **Normalize eBay Browse DTO** into provider-neutral contracts.
+12. **Persist immutable listing snapshots** during refresh.
+13. **Implement seller entity and measured reliability foundation** without
+    fabricated thresholds.
 
-## EPIC-05 Vehicle/Fitment
-18. **Vehicle Garage CRUD**.
-19. **VIN provider adapter contract**.
-20. **TecDoc commercial/license decision**.
-21. **Fitment evidence persistence**.
-22. **Fitment evaluation v1 + hard rejects**.
-23. **FitmentStatus component**.
+## Vehicle and fitment
 
-## EPIC-06 Commerce
-24. **Quote snapshot + expiry**.
-25. **Supplier price/availability refresh at quote**.
-26. **Stripe authorization + webhook dedupe**.
-27. **Create order with idempotency key**.
+22. **Implement fitment evaluation v1 and hard rejects** from persisted
+    evidence; never infer compatibility from missing evidence.
 
-## EPIC-07 Procurement
-28. **Procurement state machine**.
-29. **Internal procurement lock**.
-30. **Admin Procurement Queue**.
-31. **Approve/reject with audit reason**.
-32. **Provider capability guard**.
+## Commerce
 
-## EPIC-08 Operations
-33. **Cancellation/void/refund flow**.
-34. **Shipment/tracking abstraction**.
-35. **Returns root-cause taxonomy**.
-36. **Kill-switch admin controls**.
-37. **Sentry/OpenTelemetry baseline**.
+24. **Implement quote snapshot and expiry** in EUR.
+25. **Refresh supplier price, stock and shipping eligibility at quote time**.
+26. **Implement Stripe authorization and verified webhook deduplication** after
+    merchant approval.
+27. **Create orders with idempotency keys** and replay-safe responses.
 
-Each issue must include tests, observability, security notes and definition of done before implementation starts.
+## Procurement
+
+28. **Implement the procurement state machine** with legal transitions.
+29. **Implement the internal procurement lock**; it is not supplier inventory
+    reservation.
+31. **Complete approve/reject operations with audit reasons**; approval exists,
+    rejection remains.
+32. **Enforce provider capability guards** before any supplier-side operation.
+
+## Operations
+
+33. **Implement cancellation, authorization void and refund flows**.
+34. **Implement shipment and tracking abstraction**.
+35. **Implement returns root-cause taxonomy**.
+36. **Implement owner-gated kill-switch admin controls**.
+37. **Add Sentry/OpenTelemetry baseline** without logging secrets or PII.
+
+Every item requires tests, observability notes, security notes and a definition
+of done before implementation starts.

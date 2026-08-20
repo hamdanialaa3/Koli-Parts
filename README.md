@@ -26,12 +26,15 @@ npm run dev
 
 ## Key documents
 
-1. `PROJECT_SPEC.md`
-2. `docs/CURRENT_STATE_AUDIT.md`
-3. `docs/EBAY_FEASIBILITY_MATRIX.md`
-4. `docs/IMPLEMENTATION_SEQUENCE.md`
-5. `docs/GO_NO_GO.md`
-6. `docs/design/KOLI_ONE_VISUAL_AUDIT.md`
+1. `docs/ACTIVE_PLAN.md` — unfinished work and next execution order.
+2. `PROJECT_SPEC.md` — governing product and engineering contract.
+3. `docs/CURRENT_STATE_AUDIT.md` — concise code-backed current state.
+4. `docs/GITHUB_ISSUES_MVP.md` — remaining work item details.
+5. `docs/COMPLETED_WORK.md` — merged delivery ledger.
+6. `docs/GO_NO_GO.md` — production automation gate.
+
+Historical imported plans and completed sprint reports are retained in `DDD/`
+and are not active execution instructions.
 
 ## Database
 

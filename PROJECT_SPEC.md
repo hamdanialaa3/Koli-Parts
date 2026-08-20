@@ -257,7 +257,8 @@ Track:
 - refund cycle time,
 - repeat purchase rate.
 
-Historical target values from `START_MEIN_PLAN_1.0.md` are baselines to validate, not unquestioned promises.
+Historical target values from `docs/baseline/START_MEIN_PLAN_1.0.md` are
+baselines to validate, not unquestioned promises.
 
 ## 18. Release gates
 

@@ -1,25 +1,22 @@
-# Exact Implementation Sequence
+# Remaining Implementation Sequence
 
-1. Back up the current root.
-2. Overlay this starter pack using `INSTALL_SAFE.ps1` or copy files manually.
-3. Run `node scripts/verify-config.mjs`.
-4. Inspect real `apps/api` and `apps/web`; record deviations in `CURRENT_STATE_AUDIT.md`.
-5. Ratify ADR-001/002/003/005/006 before substantial coding.
-6. Apply `db/migrations/001_initial_schema.sql` to a disposable local DB only.
-7. Start Postgres/Redis/Meilisearch with Docker Compose.
-8. Add/confirm shared `packages/contracts` package in workspace.
-9. Implement config module with `.env.example` schema validation.
-10. Implement auth/external identity mapping after Koli One auth audit.
-11. Implement supplier interface; set eBay automated ordering false.
-12. Implement eBay client-credentials token service and Browse adapter.
-13. Build product/listing normalization + snapshot persistence.
-14. Build search indexing and initial search UI using Koli One tokens.
-15. Implement Vehicle Garage and VIN provider interface.
-16. Add TecDoc only after licensing/data contract is known.
-17. Implement fitment evidence/evaluation.
-18. Implement quote snapshot/revalidation.
-19. Implement Stripe authorization + webhook dedupe.
-20. Implement order/procurement state machine + admin queue.
-21. Run controlled dry-run before any automation.
+Start with `ACTIVE_PLAN.md`. Completed setup and feature steps were removed from
+this sequence and preserved in `COMPLETED_WORK.md`.
 
-Do not implement eBay Order API checkout to Bulgarian addresses based on the old assumption.
+1. Implement fitment evaluation v1 and hard rejects.
+2. Record eBay key/application status; do not commit secrets.
+3. Implement eBay app-token and Browse adapter.
+4. Complete catalog normalization, persistence, snapshots and seller metrics.
+5. Revisit Meilisearch only after ADR-004 is approved or Postgres search fails
+   a measured requirement.
+6. Add TecDoc only after its license and data contract are approved.
+7. Implement quote snapshot, expiry and supplier revalidation.
+8. Implement Stripe authorization and webhook dedupe after merchant approval.
+9. Implement idempotent order creation.
+10. Complete procurement state transitions, locking, reject path and provider
+    capability guards.
+11. Add cancellation/refund, tracking, returns and observability.
+12. Run a controlled dry run before any automatic procurement.
+
+Never implement eBay checkout to Bulgarian addresses from an unsupported API
+assumption.

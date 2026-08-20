@@ -150,7 +150,7 @@ describe('PostgresAdminProcurementRepository', () => {
             scope: `admin.procurement.approve.${input.procurementId}`,
             request_hash: requestHash(input),
             response_body: response,
-            expires_at: new Date('2026-08-17T20:00:00.000Z'),
+            expires_at: activeIdempotencyExpiry(),
           },
         ],
       })
@@ -176,7 +176,7 @@ describe('PostgresAdminProcurementRepository', () => {
             scope: `admin.procurement.approve.${input.procurementId}`,
             request_hash: 'different-hash',
             response_body: {},
-            expires_at: new Date('2026-08-17T20:00:00.000Z'),
+            expires_at: activeIdempotencyExpiry(),
           },
         ],
       })
@@ -228,4 +228,8 @@ function requestHash(input: {
       }),
     )
     .digest('hex');
+}
+
+function activeIdempotencyExpiry(): Date {
+  return new Date(Date.now() + 24 * 60 * 60 * 1000);
 }
